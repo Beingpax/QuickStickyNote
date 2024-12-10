@@ -1,1 +1,22 @@
-
+ <?xml version="1.0" standalone="yes"?>
+   <rss xmlns:sparkle="http://www.andymatuschak.org/xml-namespaces/sparkle" version="2.0">
+       <channel>
+           <title>Quick Sticky Notes</title>
+           <item>
+               <title>Version 1.0</title>
+               <pubDate>Wed, 10 Dec 2023 12:00:00 +0000</pubDate>
+               <sparkle:version>1.0</sparkle:version>
+               <sparkle:shortVersionString>1.0</sparkle:shortVersionString>
+               <description>Initial release</description>
+               <link>https://github.com/YOUR_USERNAME/quick-sticky-notes/releases/tag/v1.0</link>
+               <enclosure
+                   url="https://github.com/YOUR_USERNAME/quick-sticky-notes/releases/download/v1.0/QuickStickyNotes.app.zip"
+                   sparkle:version="1.0"
+                   sparkle:shortVersionString="1.0"
+                   length="1234567"
+                   type="application/octet-stream"
+                   sparkle:edSignature="YOUR_SIGNATURE"
+               />
+           </item>
+       </channel>
+   </rss>
