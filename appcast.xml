@@ -3,12 +3,12 @@
     <channel>
         <title>Quick Sticky Notes</title>
         <item>
-            <title>1.0</title>
-            <pubDate>Tue, 10 Dec 2024 21:23:21 +0545</pubDate>
-            <sparkle:version>1.1</sparkle:version>
-            <sparkle:shortVersionString>1.1</sparkle:shortVersionString>
+            <title>0.3</title>
+            <pubDate>Thu, 02 Jan 2025 19:09:22 +0545</pubDate>
+            <sparkle:version>3</sparkle:version>
+            <sparkle:shortVersionString>0.3</sparkle:shortVersionString>
             <sparkle:minimumSystemVersion>14.0</sparkle:minimumSystemVersion>
-            <enclosure url="https://github.com/Beingpax/VoiceInk/releases/download/v0.32/VoiceInk.dmg" length="3070729" type="application/octet-stream"/>
+            <enclosure url="Quick%20Sticky%20Notes.dmg" length="5053738" type="application/octet-stream"/>
         </item>
     </channel>
 </rss>
