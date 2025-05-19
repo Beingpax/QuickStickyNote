@@ -1,0 +1,32 @@
+{
+  "identifier" : "com.qsnotes.store",
+  "nonRenewingSubscriptions" : [
+
+  ],
+  "products" : [
+    {
+      "displayPrice" : "15.99",
+      "familyShareable" : false,
+      "internalID" : "com.qsnotes.pro.lifetime",
+      "localizations" : [
+        {
+          "description" : "Unlock all Pro features forever",
+          "displayName" : "Quick Sticky Notes Pro (Lifetime)",
+          "locale" : "en_US"
+        }
+      ],
+      "productID" : "com.qsnotes.pro.lifetime",
+      "referenceName" : "Pro Lifetime",
+      "type" : "NonConsumable"
+    }
+  ],
+  "settings" : {
+    "_applicationInternalID" : "com.qsnotes",
+    "_developerTeamID" : "V6J6A3VWY2",
+    "_lastSynchronizedDate" : 719161957.11639404
+  },
+  "version" : {
+    "major" : 3,
+    "minor" : 0
+  }
+} 
