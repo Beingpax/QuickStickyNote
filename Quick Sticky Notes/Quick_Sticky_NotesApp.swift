@@ -230,7 +230,9 @@ class AppDelegate: NSObject, NSApplicationDelegate {
             }
             
             let window = EditNoteWindow()
+            NSApp.setActivationPolicy(.regular)
             window.makeKeyAndOrderFront(nil)
+            NSApp.setActivationPolicy(.accessory)
             quickNoteWindowController = NSWindowController(window: window)
         }
     }
@@ -241,7 +243,9 @@ class AppDelegate: NSObject, NSApplicationDelegate {
             NSApp.activate(ignoringOtherApps: true)
             
             if let windowController = notesListWindowController {
+                NSApp.setActivationPolicy(.regular)
                 windowController.window?.makeKeyAndOrderFront(nil)
+                NSApp.setActivationPolicy(.accessory)
                 return
             }
             
@@ -260,6 +264,9 @@ class AppDelegate: NSObject, NSApplicationDelegate {
             
             window.contentView = NSHostingView(rootView: notesListView)
             
+            NSApp.setActivationPolicy(.regular)
+            window.orderFrontRegardless()
+            NSApp.setActivationPolicy(.accessory)
             notesListWindowController = NSWindowController(window: window)
             notesListWindowController?.showWindow(nil)
         }
@@ -310,11 +317,16 @@ class AppDelegate: NSObject, NSApplicationDelegate {
             }
             
             if let windowController = recentNotesWindowController {
+                NSApp.setActivationPolicy(.regular)
                 windowController.window?.makeKeyAndOrderFront(nil)
+                NSApp.setActivationPolicy(.accessory)
                 return
             }
             
             let window = RecentNotesWindow()
+            NSApp.setActivationPolicy(.regular)
+            window.orderFrontRegardless()
+            NSApp.setActivationPolicy(.accessory)
             recentNotesWindowController = NSWindowController(window: window)
             recentNotesWindowController?.showWindow(nil)
         }

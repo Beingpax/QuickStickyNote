@@ -44,15 +44,20 @@ class EditNoteWindow: NSPanel {
         
         super.init(
             contentRect: frame!,
-            styleMask: [.titled, .closable, .miniaturizable, .resizable],
+            styleMask: [.nonactivatingPanel, .titled, .closable, .miniaturizable, .resizable],
             backing: .buffered,
             defer: false
         )
         
         // Configure panel properties
         isFloatingPanel = true
-        level = .floating
-        collectionBehavior = [.canJoinAllSpaces, .fullScreenAuxiliary]
+        level = .statusBar
+        collectionBehavior = [
+            .canJoinAllSpaces, 
+            .fullScreenAuxiliary,
+            .stationary,
+            .ignoresCycle
+        ]
         hidesOnDeactivate = false
         
         minSize = NSSize(width: 300, height: 200)
@@ -61,8 +66,13 @@ class EditNoteWindow: NSPanel {
         title = note?.title ?? "New Note"
         
         // Modern window appearance
-        backgroundColor = .clear
+        let baseNSColor = NSColor(colorState.selectedColor.backgroundColor)
+        let titleBarColor = baseNSColor.blended(withFraction: 0.15, of: .black) ?? baseNSColor
+        
+        backgroundColor = titleBarColor // Use the darker color for the window background
         hasShadow = true
+        titlebarAppearsTransparent = true
+        titleVisibility = .visible
         
         // Center only if it's the first window
         if EditNoteWindow.lastWindowFrame == nil {
@@ -123,6 +133,9 @@ struct WindowContentView: View {
             updateWindowTitle()
             triggerAutoSave()
         }
+        .onChange(of: colorState.selectedColor) { _, newColor in
+            updatePanelBackgroundColor(newColor)
+        }
         .overlay(
             Button("Close") {
                 window?.close()
@@ -130,6 +143,13 @@ struct WindowContentView: View {
             .keyboardShortcut("w", modifiers: .command)
             .opacity(0)
         )
+    }
+    
+    private func updatePanelBackgroundColor(_ noteColor: NoteColor) {
+        guard let panel = window as? NSPanel else { return }
+        let baseNSColor = NSColor(noteColor.backgroundColor)
+        let titleBarColor = baseNSColor.blended(withFraction: 0.15, of: .black) ?? baseNSColor
+        panel.backgroundColor = titleBarColor
     }
     
     private func updateWindowTitle() {

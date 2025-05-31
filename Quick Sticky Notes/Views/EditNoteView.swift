@@ -44,30 +44,6 @@ struct EditNoteView: View {
     
     var body: some View {
         VStack(spacing: 0) {
-            // Title Field
-            TextField("", text: $title)
-                .textFieldStyle(.plain)
-                .font(.system(size: 15, weight: .semibold))
-                .foregroundColor(.black)
-                .padding(.horizontal, 20)
-                .padding(.top, 8)
-                .padding(.bottom, 4)
-                .placeholder(when: title.isEmpty) {
-                    Text("Untitled")
-                        .foregroundColor(.black.opacity(0.6))
-                        .font(.system(size: 15, weight: .semibold))
-                        .padding(.horizontal, 20)
-                }
-                .onChange(of: title) { _, newValue in
-                    noteState.hasUnsavedChanges = true
-                    window?.title = newValue.isEmpty ? "Untitled" : newValue
-                    triggerAutoSave()
-                }
-            
-            Divider()
-                .background(Color.black.opacity(0.2))
-                .frame(height: 1)
-            
             // Main Content Area
             if isPreviewMode {
                 ScrollView {
@@ -77,8 +53,8 @@ struct EditNoteView: View {
                             .textSelection(.enabled)
                             .frame(maxWidth: .infinity, alignment: .leading)
                     }
-                    .padding(.horizontal, 20)
-                    .padding(.top, 4)
+                    .padding(.horizontal, 16)
+                    .padding(.top, 16)
                 }
                 .frame(maxWidth: .infinity, maxHeight: .infinity)
                 .background(Color(selectedColor.backgroundColor))
@@ -90,8 +66,8 @@ struct EditNoteView: View {
                     .font(.system(size: 15))
                     .frame(maxWidth: .infinity, maxHeight: .infinity)
                     .clipShape(Rectangle())
-                    .padding(.horizontal, 20)
-                    .padding(.top, 4)
+                    .padding(.horizontal, 10)
+                    .padding(.top, 16)
             }
             
             // Bottom Toolbar

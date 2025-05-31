@@ -27,7 +27,7 @@ class RecentNotesWindow: NSWindow {
         // Initialize window with frame
         super.init(
             contentRect: frame!,
-            styleMask: [.titled, .closable],
+            styleMask: [.nonactivatingPanel, .titled, .closable],
             backing: .buffered,
             defer: false
         )
@@ -35,6 +35,14 @@ class RecentNotesWindow: NSWindow {
         // Configure window properties
         title = "Recent Notes"
         isReleasedWhenClosed = false
+        level = .statusBar
+        collectionBehavior = [
+            .canJoinAllSpaces,
+            .fullScreenAuxiliary,
+            .stationary,
+            .ignoresCycle
+        ]
+        
         center()
         
         // Set up the content view
