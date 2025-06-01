@@ -8,11 +8,15 @@ class PreferencesWindowController: NSWindowController {
             contentRect: NSRect(x: 0, y: 0, width: 600, height: 500),
             styleMask: [.titled, .closable, .miniaturizable],
             backing: .buffered,
-            defer: false
+            defer: false,
+            positionNearCursor: true
         )
         
         window.title = "Preferences"
-        window.center()
+        
+        // Set window level and behavior to ensure it appears above other apps
+        window.level = .floating
+        window.collectionBehavior = [.fullScreenAuxiliary]
         
         let preferencesView = PreferencesView()
         window.contentView = NSHostingView(rootView: preferencesView)
@@ -22,6 +26,14 @@ class PreferencesWindowController: NSWindowController {
     
     required init?(coder: NSCoder) {
         fatalError("init(coder:) has not been implemented")
+    }
+    
+    override func showWindow(_ sender: Any?) {
+        super.showWindow(sender)
+        
+        // Ensure window becomes key and front-most when shown
+        window?.makeKeyAndOrderFront(sender)
+        NSApp.activate(ignoringOtherApps: true)
     }
 }
 
@@ -366,7 +378,6 @@ struct ModernToggleStyle: ToggleStyle {
         }
     }
 }
-
 // MARK: - Supporting Styles
 struct ModernGroupBoxStyle: GroupBoxStyle {
     func makeBody(configuration: Configuration) -> some View {

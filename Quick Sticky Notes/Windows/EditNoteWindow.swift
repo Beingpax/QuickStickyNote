@@ -2,8 +2,6 @@ import SwiftUI
 import AppKit
 
 class EditNoteWindow: NSPanel {
-    static let frameAutosaveName = "EditNoteWindowFrame"
-    static var lastWindowFrame: NSRect?
     private let noteState: NoteState
     private let colorState: ColorState
     private let recentNotesManager = RecentNotesManager.shared
@@ -24,29 +22,12 @@ class EditNoteWindow: NSPanel {
             recentNotesManager.addRecentNote(filePath: note.filePath)
         }
         
-        // First try to get the last used frame from memory
-        var frame = EditNoteWindow.lastWindowFrame
-        
-        // If no frame in memory, try to get from UserDefaults
-        if frame == nil {
-            if let savedFrame = UserDefaults.standard.windowFrame(forKey: EditNoteWindow.frameAutosaveName) {
-                frame = NSWindow.contentRect(
-                    forFrameRect: savedFrame,
-                    styleMask: [.titled, .closable, .miniaturizable, .resizable]
-                )
-            }
-        }
-        
-        // If still no frame, use default
-        if frame == nil || frame?.size.width ?? 0 < 300 {
-            frame = NSRect(x: 0, y: 0, width: 550, height: 300)
-        }
-        
         super.init(
-            contentRect: frame!,
+            contentRect: NSRect(x: 0, y: 0, width: 550, height: 300),
             styleMask: [.nonactivatingPanel, .titled, .closable, .miniaturizable, .resizable],
             backing: .buffered,
-            defer: false
+            defer: false,
+            positionNearCursor: true
         )
         
         // Configure panel properties
@@ -74,11 +55,6 @@ class EditNoteWindow: NSPanel {
         titlebarAppearsTransparent = true
         titleVisibility = .visible
         
-        // Center only if it's the first window
-        if EditNoteWindow.lastWindowFrame == nil {
-            center()
-        }
-        
         contentView = NSHostingView(
             rootView: WindowContentView(noteState: self.noteState, colorState: self.colorState)
                 .environment(\.window, self)
@@ -88,9 +64,6 @@ class EditNoteWindow: NSPanel {
         Task { @MainActor in
             NotesManager.shared.registerOpenNote(state: noteState)
         }
-        
-        // Set delegate to handle window state changes
-        delegate = WindowStateDelegate.shared
     }
     
     deinit {
@@ -183,45 +156,5 @@ struct WindowContentView: View {
                 print("Error saving note: \(error)")
             }
         }
-    }
-}
-
-// Window state delegate to handle window state persistence
-class WindowStateDelegate: NSObject, NSWindowDelegate {
-    static let shared = WindowStateDelegate()
-    
-    func windowDidResize(_ notification: Notification) {
-        guard let window = notification.object as? EditNoteWindow else { return }
-        saveWindowFrame(window)
-    }
-    
-    func windowDidMove(_ notification: Notification) {
-        guard let window = notification.object as? EditNoteWindow else { return }
-        saveWindowFrame(window)
-    }
-    
-    func windowWillClose(_ notification: Notification) {
-        guard let window = notification.object as? EditNoteWindow else { return }
-        // Save the frame before the window closes
-        saveWindowFrame(window)
-    }
-    
-    private func saveWindowFrame(_ window: EditNoteWindow) {
-        // Save to both memory and UserDefaults
-        EditNoteWindow.lastWindowFrame = window.frame
-        UserDefaults.standard.setWindowFrame(window.frame, forKey: EditNoteWindow.frameAutosaveName)
-    }
-}
-
-// Extension to handle window frame persistence
-extension UserDefaults {
-    func setWindowFrame(_ frame: NSRect, forKey key: String) {
-        set(NSStringFromRect(frame), forKey: key)
-        synchronize() // Ensure the changes are written immediately
-    }
-    
-    func windowFrame(forKey key: String) -> NSRect? {
-        guard let string = string(forKey: key) else { return nil }
-        return NSRectFromString(string)
     }
 } 
