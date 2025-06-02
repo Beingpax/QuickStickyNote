@@ -8,11 +8,11 @@ class PreferencesWindowController: NSWindowController {
             contentRect: NSRect(x: 0, y: 0, width: 600, height: 500),
             styleMask: [.titled, .closable, .miniaturizable],
             backing: .buffered,
-            defer: false,
-            positionNearCursor: true
+            defer: false
         )
         
         window.title = "Preferences"
+        window.center()
         
         // Set window level and behavior to ensure it appears above other apps
         window.level = .floating

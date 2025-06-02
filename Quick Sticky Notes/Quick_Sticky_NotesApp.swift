@@ -54,7 +54,6 @@ class AppDelegate: NSObject, NSApplicationDelegate {
     }
     
     private func showOnboarding() {
-        // Create frame positioned near cursor - but for onboarding, use full screen
         let window = NSWindow(
             contentRect: NSScreen.main?.visibleFrame ?? NSRect(x: 0, y: 0, width: 1200, height: 800),
             styleMask: [.titled, .closable, .miniaturizable, .resizable],
@@ -63,7 +62,7 @@ class AppDelegate: NSObject, NSApplicationDelegate {
         )
         
         window.title = "Welcome to Quick Sticky Notes"
-        window.center() // Keep center for onboarding as it's a special case
+        window.center()
         window.setFrame(NSScreen.main?.visibleFrame ?? window.frame, display: true)
         window.isReleasedWhenClosed = false
         
@@ -109,10 +108,10 @@ class AppDelegate: NSObject, NSApplicationDelegate {
             contentRect: NSRect(x: 0, y: 0, width: 400, height: 450),
             styleMask: [.titled, .closable],
             backing: .buffered,
-            defer: false,
-            positionNearCursor: true
+            defer: false
         )
         window.title = "Upgrade to Pro"
+        window.center()
         window.contentView = NSHostingView(rootView: UpgradePromptView())
         window.isReleasedWhenClosed = false
         upgradePromptWindowController = NSWindowController(window: window)
@@ -133,10 +132,10 @@ class AppDelegate: NSObject, NSApplicationDelegate {
             contentRect: NSRect(x: 0, y: 0, width: 400, height: 450),
             styleMask: [.titled, .closable],
             backing: .buffered,
-            defer: false,
-            positionNearCursor: true
+            defer: false
         )
         window.title = "Upgrade to Pro"
+        window.center()
         window.contentView = NSHostingView(rootView: UpgradePromptView())
         window.isReleasedWhenClosed = false
         upgradePromptWindowController = NSWindowController(window: window)
@@ -231,9 +230,8 @@ class AppDelegate: NSObject, NSApplicationDelegate {
             }
             
             let window = EditNoteWindow()
-            NSApp.setActivationPolicy(.regular)
             window.makeKeyAndOrderFront(nil)
-            NSApp.setActivationPolicy(.accessory)
+            NSApp.activate(ignoringOtherApps: true)
             quickNoteWindowController = NSWindowController(window: window)
         }
     }
@@ -244,10 +242,9 @@ class AppDelegate: NSObject, NSApplicationDelegate {
             NSApp.activate(ignoringOtherApps: true)
             
             if let windowController = notesListWindowController {
-                NSApp.setActivationPolicy(.regular)
+                windowController.window?.orderFrontRegardless()
                 windowController.window?.makeKeyAndOrderFront(nil)
                 NSApp.activate(ignoringOtherApps: true)
-                NSApp.setActivationPolicy(.accessory)
                 return
             }
             
@@ -255,22 +252,20 @@ class AppDelegate: NSObject, NSApplicationDelegate {
                 contentRect: NSRect(x: 0, y: 0, width: 800, height: 500),
                 styleMask: [.titled, .closable, .miniaturizable, .resizable],
                 backing: .buffered,
-                defer: false,
-                positionNearCursor: true
+                defer: false
             )
             
             window.title = "All Notes"
+            window.center()
             
             let notesListView = NotesListView()
                 .environment(\.window, window)
             
             window.contentView = NSHostingView(rootView: notesListView)
             
-            NSApp.setActivationPolicy(.regular)
             window.orderFrontRegardless()
             window.makeKeyAndOrderFront(nil)
             NSApp.activate(ignoringOtherApps: true)
-            NSApp.setActivationPolicy(.accessory)
             notesListWindowController = NSWindowController(window: window)
         }
     }
@@ -286,11 +281,11 @@ class AppDelegate: NSObject, NSApplicationDelegate {
             contentRect: NSRect(x: 0, y: 0, width: 600, height: 700),
             styleMask: [.titled, .closable],
             backing: .buffered,
-            defer: false,
-            positionNearCursor: true
+            defer: false
         )
         
         window.title = "About Quick Sticky Notes"
+        window.center()
         window.isMovableByWindowBackground = true
         
         window.contentView = NSHostingView(
@@ -320,19 +315,14 @@ class AppDelegate: NSObject, NSApplicationDelegate {
             }
             
             if let windowController = recentNotesWindowController {
-                NSApp.setActivationPolicy(.regular)
                 windowController.window?.makeKeyAndOrderFront(nil)
                 NSApp.activate(ignoringOtherApps: true)
-                NSApp.setActivationPolicy(.accessory)
                 return
             }
             
             let window = RecentNotesWindow()
-            NSApp.setActivationPolicy(.regular)
-            window.orderFrontRegardless()
             window.makeKeyAndOrderFront(nil)
             NSApp.activate(ignoringOtherApps: true)
-            NSApp.setActivationPolicy(.accessory)
             recentNotesWindowController = NSWindowController(window: window)
         }
     }
