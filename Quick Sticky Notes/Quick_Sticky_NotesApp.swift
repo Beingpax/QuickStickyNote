@@ -333,19 +333,6 @@ class AppDelegate: NSObject, NSApplicationDelegate {
         }
     }
     
-    @objc private func toggleDockIcon() {
-        let currentPolicy = NSApp.activationPolicy()
-        let newPolicy: NSApplication.ActivationPolicy = (currentPolicy == .regular) ? .accessory : .regular
-        
-        NSApp.setActivationPolicy(newPolicy)
-        
-        // Recreate menu to update the menu item title
-        createMenu()
-        
-        // Save the preference
-        UserDefaults.standard.set(newPolicy == .accessory, forKey: "hideDockIcon")
-    }
-    
     private func setupNotificationObservers() {
         NotificationCenter.default.addObserver(
             self,

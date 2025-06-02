@@ -166,14 +166,31 @@ struct PreferencesView: View {
                     SettingSection(title: "App Appearance", icon: "macwindow", iconColor: Color(hex: "#FF6B6B")) {
                         VStack(alignment: .leading, spacing: 12) {
                             Toggle(isOn: Binding(
-                                get: { UserDefaults.standard.bool(forKey: "hideDockIcon") },
+                                get: { 
+                                    // Read from the actual activation policy to ensure accuracy
+                                    NSApp.activationPolicy() == .accessory
+                                },
                                 set: { newValue in
-                                    UserDefaults.standard.set(newValue, forKey: "hideDockIcon")
-                                    let newPolicy: NSApplication.ActivationPolicy = newValue ? .accessory : .regular
-                                    NSApp.setActivationPolicy(newPolicy)
-                                    // Update menu
-                                    if let appDelegate = NSApp.delegate as? AppDelegate {
-                                        appDelegate.createMenu()
+                                    // Use a more reliable approach
+                                    let targetPolicy: NSApplication.ActivationPolicy = newValue ? .accessory : .regular
+                                    
+                                    // Only change if different from current
+                                    if NSApp.activationPolicy() != targetPolicy {
+                                        NSApp.setActivationPolicy(targetPolicy)
+                                        
+                                        // Save to UserDefaults
+                                        UserDefaults.standard.set(newValue, forKey: "hideDockIcon")
+                                        UserDefaults.standard.synchronize()
+                                        
+                                        // Update menu
+                                        if let appDelegate = NSApp.delegate as? AppDelegate {
+                                            appDelegate.createMenu()
+                                        }
+                                        
+                                        // Force a small delay to ensure UI updates properly
+                                        DispatchQueue.main.asyncAfter(deadline: .now() + 0.1) {
+                                            // This helps ensure the toggle state is properly reflected
+                                        }
                                     }
                                 }
                             )) {
