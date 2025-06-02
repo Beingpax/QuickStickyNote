@@ -44,6 +44,23 @@ struct EditNoteView: View {
     
     var body: some View {
         VStack(spacing: 0) {
+            // Title Bar
+            TextField("Untitled", text: $title)
+                .textFieldStyle(.plain)
+                .font(.title2.weight(.medium))
+                .padding(.horizontal, 16)
+                .padding(.top, 12)
+                .background(Color(selectedColor.backgroundColor))
+                .onChange(of: title) { _, newTitle in
+                    noteState.hasUnsavedChanges = true
+                    triggerAutoSave()
+                    window?.title = newTitle.isEmpty ? "Untitled" : newTitle
+                }
+            
+            Divider()
+                .padding(.horizontal, 16)
+                .padding(.vertical, 4)
+
             // Main Content Area
             if isPreviewMode {
                 ScrollView {
@@ -54,7 +71,6 @@ struct EditNoteView: View {
                             .frame(maxWidth: .infinity, alignment: .leading)
                     }
                     .padding(.horizontal, 16)
-                    .padding(.top, 16)
                 }
                 .frame(maxWidth: .infinity, maxHeight: .infinity)
                 .background(Color(selectedColor.backgroundColor))
@@ -67,7 +83,6 @@ struct EditNoteView: View {
                     .frame(maxWidth: .infinity, maxHeight: .infinity)
                     .clipShape(Rectangle())
                     .padding(.horizontal, 10)
-                    .padding(.top, 16)
             }
             
             // Bottom Toolbar
