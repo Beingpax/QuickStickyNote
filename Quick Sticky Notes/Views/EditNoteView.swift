@@ -133,11 +133,7 @@ struct EditNoteView: View {
                     HStack(spacing: 8) {
                         ForEach(allColors, id: \.name) { color in
                             Button(action: {
-                                if color.name == "citrus" || proManager.canAccessProFeatures {
-                                    selectedColor = color
-                                } else {
-                                    showingUpgradePrompt = true
-                                }
+                                selectedColor = color
                             }) {
                                 Circle()
                                     .fill(Color(color.backgroundColor))
@@ -146,17 +142,6 @@ struct EditNoteView: View {
                                         Circle()
                                             .strokeBorder(Color.white, lineWidth: 2)
                                             .opacity(color.name == selectedColor.name ? 1 : 0)
-                                    )
-                                    .overlay(
-                                        color.name != "citrus" && !proManager.canAccessProFeatures ?
-                                        Circle()
-                                            .fill(Color.black.opacity(0.3))
-                                            .overlay(
-                                                Image(systemName: "lock.fill")
-                                                    .font(.system(size: 8))
-                                                    .foregroundColor(.white)
-                                            )
-                                        : nil
                                     )
                             }
                             .buttonStyle(.plain)
