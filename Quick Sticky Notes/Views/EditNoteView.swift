@@ -210,7 +210,7 @@ struct EditNoteView: View {
             }
             .frame(height: 28)
         }
-        .frame(minWidth: 300, minHeight: 220)
+        .frame(minWidth: 400, maxWidth: 900, minHeight: 320, maxHeight: 750)
         .background(Color(selectedColor.backgroundColor))
         .onChange(of: noteText) { _, _ in
             noteState.hasUnsavedChanges = true
