@@ -645,49 +645,47 @@ class ClickableTextView: NSTextView {
     
     private func drawNativeCheckbox(in rect: NSRect, isChecked: Bool) {
         // Create a properly sized checkbox rectangle
-        let checkboxSize: CGFloat = 14
+        let checkboxSize: CGFloat = 15
         let checkboxRect = NSRect(
             x: rect.origin.x,
             y: rect.origin.y + (rect.height - checkboxSize) / 2,
             width: checkboxSize,
             height: checkboxSize
         )
-        
+
         if isChecked {
-            // Checked state: Clean background with filled rounded rectangle
-            NSColor.white.withAlphaComponent(0.95).setFill()
-            let backgroundPath = NSBezierPath(roundedRect: checkboxRect, xRadius: 3, yRadius: 3)
-            backgroundPath.fill()
-            
-            // Border
-            NSColor.black.withAlphaComponent(0.2).setStroke()
-            let borderPath = NSBezierPath(roundedRect: checkboxRect, xRadius: 3, yRadius: 3)
-            borderPath.lineWidth = 2.0
-            borderPath.stroke()
-            
-            // Draw filled rounded rectangle in the center instead of dot
-            let fillSize: CGFloat = 10  // Slightly smaller than the 14px checkbox
-            let fillRect = NSRect(
-                x: checkboxRect.midX - fillSize/2,
-                y: checkboxRect.midY - fillSize/2,
-                width: fillSize,
-                height: fillSize
-            )
-            
-            NSColor.black.withAlphaComponent(0.8).setFill()
-            let fillPath = NSBezierPath(roundedRect: fillRect, xRadius: 2, yRadius: 2)
+            // Checked state: Solid contrasting color with a white checkmark
+            NSColor.black.withAlphaComponent(0.85).setFill()
+            let fillPath = NSBezierPath(roundedRect: checkboxRect, xRadius: 4, yRadius: 4)
             fillPath.fill()
-            
+
+            // Draw white checkmark
+            NSColor.white.setStroke()
+            let checkmarkPath = NSBezierPath()
+            checkmarkPath.lineWidth = 2.5 // Made slightly thicker
+            checkmarkPath.lineCapStyle = .round
+            checkmarkPath.lineJoinStyle = .round
+
+            // Create checkmark shape (points adjusted for better visibility)
+            let centerX = checkboxRect.midX
+            let centerY = checkboxRect.midY
+            let checkMarkSize: CGFloat = 8.0 // Adjusted size for clarity
+
+            checkmarkPath.move(to: NSPoint(x: centerX - checkMarkSize * 0.45, y: centerY + checkMarkSize * 0.0))
+            checkmarkPath.line(to: NSPoint(x: centerX - checkMarkSize * 0.05, y: centerY + checkMarkSize * 0.4))
+            checkmarkPath.line(to: NSPoint(x: centerX + checkMarkSize * 0.5, y: centerY - checkMarkSize * 0.35))
+            checkmarkPath.stroke()
+
         } else {
-            // Unchecked state: Clean outline
-            NSColor.white.withAlphaComponent(0.95).setFill()
-            let backgroundPath = NSBezierPath(roundedRect: checkboxRect, xRadius: 3, yRadius: 3)
+            // Unchecked state: Subtle fill with a clear border
+            NSColor.black.withAlphaComponent(0.08).setFill()
+            let backgroundPath = NSBezierPath(roundedRect: checkboxRect, xRadius: 4, yRadius: 4)
             backgroundPath.fill()
-            
+
             // Border
-            NSColor.black.withAlphaComponent(0.2).setStroke()
-            let borderPath = NSBezierPath(roundedRect: checkboxRect, xRadius: 3, yRadius: 3)
-            borderPath.lineWidth = 2.0
+            NSColor.black.withAlphaComponent(0.4).setStroke() // Slightly more visible border
+            let borderPath = NSBezierPath(roundedRect: checkboxRect, xRadius: 4, yRadius: 4)
+            borderPath.lineWidth = 2.5
             borderPath.stroke()
         }
     }
