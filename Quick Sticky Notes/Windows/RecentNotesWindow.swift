@@ -14,7 +14,7 @@ class RecentNotesWindow: NSWindow {
             if let savedFrame = UserDefaults.standard.windowFrame(forKey: RecentNotesWindow.frameAutosaveName) {
                 frame = NSWindow.contentRect(
                     forFrameRect: savedFrame,
-                    styleMask: [.titled, .closable]
+                    styleMask: [.borderless, .resizable]
                 )
             }
         }
@@ -24,30 +24,45 @@ class RecentNotesWindow: NSWindow {
             frame = NSRect(x: 0, y: 0, width: 400, height: 600)
         }
         
-        // Initialize window with frame
+        // Initialize window with borderless style for cleaner look
         super.init(
             contentRect: frame!,
-            styleMask: [.titled, .closable],
+            styleMask: [.borderless, .resizable],
             backing: .buffered,
             defer: false
         )
         
-        // Configure window properties
-        title = "Recent Notes"
+        // Configure window properties for always on top behavior
         isReleasedWhenClosed = false
-        level = .floating
+        level = .popUpMenu  // Higher than .statusBar used by EditNoteWindow
         collectionBehavior = [
             .canJoinAllSpaces,
             .fullScreenAuxiliary,
-            .stationary
+            .stationary,
+            .ignoresCycle
         ]
+        
+        // Modern translucent appearance
+        backgroundColor = .clear
+        hasShadow = true
+        isOpaque = false
+        
+        // Enable vibrancy and transparency
+        titlebarAppearsTransparent = true
+        
+        // Make it movable by background since there's no titlebar
+        isMovableByWindowBackground = true
         
         center()
         
-        // Set up the content view
+        // Set up the content view with vibrancy effect
         contentView = NSHostingView(
             rootView: RecentNotesView()
                 .environment(\.window, self)
+                .background(.regularMaterial, in: RoundedRectangle(cornerRadius: 16))
+                
+                .shadow(color: .black.opacity(0.3), radius: 20, x: 0, y: 10)
+                .clipShape(RoundedRectangle(cornerRadius: 16))
         )
         
         // Set delegate to handle window state changes
