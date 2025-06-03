@@ -479,9 +479,9 @@ private struct ShortcutsSetupView: View {
                 )
                 
                 ShortcutRow(
-                    title: "Toggle Preview",
-                    description: "Switch between edit and preview modes",
-                    shortcutName: .togglePreviewMode,
+                    title: "Switch Editor Mode",
+                    description: "Switch between WYSIWYG, Plain Text, and Preview modes",
+                    shortcutName: .switchEditorMode,
                     color: accentColor
                 )
             }

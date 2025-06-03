@@ -45,6 +45,13 @@ struct MarkdownTextView: NSViewRepresentable {
         textView.textColor = .black
         textView.backgroundColor = .clear
         textView.drawsBackground = false
+        textView.textContainerInset = NSSize(width: 0, height: 10)
+        
+        // Add line spacing to match preview mode (0.25em relative line spacing)
+        let paragraphStyle = NSMutableParagraphStyle()
+        paragraphStyle.lineSpacing = font.pointSize * 0.25  // 0.25em in points
+        textView.defaultParagraphStyle = paragraphStyle
+        textView.typingAttributes[.paragraphStyle] = paragraphStyle
         
         // Configure text view for scroll view
         textView.autoresizingMask = [.width]

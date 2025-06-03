@@ -135,7 +135,7 @@ struct PreferencesView: View {
                                 .controlSize(.large)
                             KeyboardShortcuts.Recorder("Open Recent Notes:", name: .openRecentNotes)
                                 .controlSize(.large)
-                            KeyboardShortcuts.Recorder("Toggle Preview Mode:", name: .togglePreviewMode)
+                            KeyboardShortcuts.Recorder("Switch Editor Mode:", name: .switchEditorMode)
                                 .controlSize(.large)
                             KeyboardShortcuts.Recorder("Open Scratchpad:", name: .openScratchpad)
                                 .controlSize(.large)

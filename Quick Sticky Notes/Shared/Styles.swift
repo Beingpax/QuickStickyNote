@@ -218,7 +218,7 @@ struct NoteColor: Equatable, Codable, Identifiable {
     // Color definitions
     static let sunset = NoteColor(
         name: "sunset",
-        backgroundColor: Color(red: 1.0, green: 0.90, blue: 0.85)
+        backgroundColor: Color(red: 1.0, green: 0.8784, blue: 0.698)
     )
     
     static let emerald = NoteColor(

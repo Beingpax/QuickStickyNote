@@ -74,6 +74,10 @@ class EditNoteWindow: NSPanel {
         titlebarAppearsTransparent = true
         titleVisibility = .visible
         
+        
+        // Set window title color explicitly
+        self.appearance = NSAppearance(named: .aqua) // This forces dark text on title bar
+        
         // Center only if it's the first window
         if EditNoteWindow.lastWindowFrame == nil {
             center()
