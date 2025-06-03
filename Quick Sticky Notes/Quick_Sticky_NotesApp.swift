@@ -114,6 +114,7 @@ class AppDelegate: NSObject, NSApplicationDelegate {
         window.center()
         window.contentView = NSHostingView(rootView: UpgradePromptView())
         window.isReleasedWhenClosed = false
+        window.level = .floating
         upgradePromptWindowController = NSWindowController(window: window)
         upgradePromptWindowController?.showWindow(nil)
         NSApp.activate(ignoringOtherApps: true)
@@ -138,6 +139,7 @@ class AppDelegate: NSObject, NSApplicationDelegate {
         window.center()
         window.contentView = NSHostingView(rootView: UpgradePromptView())
         window.isReleasedWhenClosed = false
+        window.level = .floating
         upgradePromptWindowController = NSWindowController(window: window)
         upgradePromptWindowController?.showWindow(nil)
         NSApp.activate(ignoringOtherApps: true)

@@ -30,6 +30,7 @@ enum EditorMode: String, CaseIterable, Identifiable {
 struct EditNoteView: View {
     @Environment(\.window) private var window
     @StateObject private var notesManager = NotesManager.shared
+    @StateObject private var proManager = ProManager.shared
     @ObservedObject var noteState: NoteState
     @State private var isWindowFocused = false
     
@@ -43,6 +44,7 @@ struct EditNoteView: View {
     @State private var currentError: FileError?
     @State private var editorMode: EditorMode = .wysiwyg
     @State private var showingExternalChangeAlert = false
+    @State private var showingUpgradePrompt = false
     
     // Auto-save debouncer
     @StateObject private var autoSave = DebouncedSave()
@@ -171,7 +173,13 @@ struct EditNoteView: View {
                             }
                             
                             // Add Color Button
-                            Button(action: { showingColorPicker = true }) {
+                            Button(action: {
+                                if proManager.isProUser {
+                                    showingColorPicker = true
+                                } else {
+                                    showingUpgradePrompt = true
+                                }
+                            }) {
                                 Circle()
                                     .fill(Color.black.opacity(0.05))
                                     .frame(width: 20, height: 20)
@@ -298,6 +306,9 @@ struct EditNoteView: View {
                     handleErrorHelp()
                 }
             )
+        }
+        .sheet(isPresented: $showingUpgradePrompt) {
+            UpgradePromptView()
         }
     }
     
