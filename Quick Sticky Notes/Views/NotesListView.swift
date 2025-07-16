@@ -598,6 +598,7 @@ struct NoteCardView: View {
         }
         .padding(20)
         .frame(maxWidth: .infinity, minHeight: 220)
+        .drawingGroup() // Stabilize rendering
         .background(
             RoundedRectangle(cornerRadius: 16)
                 .fill(Color(noteColor.backgroundColor))

@@ -171,6 +171,7 @@ struct RecentNoteCard: View {
                 .padding(.bottom, 12)
             }
             .frame(maxWidth: .infinity)
+            .drawingGroup() // Stabilize rendering
             .background(
                 RoundedRectangle(cornerRadius: 12)
                     .fill(Color(noteColor.backgroundColor))
