@@ -6,55 +6,71 @@ struct RecentNotesView: View {
     @StateObject private var notesManager = NotesManager.shared
     @State private var errorMessage = ""
     @State private var showError = false
+    @State private var searchText = ""
+    @FocusState private var isSearchFieldFocused: Bool
+    
+    private var filteredNotes: [FileNote] {
+        let allNotes = notesManager.notes
+        if searchText.isEmpty {
+            // If search is empty, show recent notes
+            let recentFilePaths = recentNotesManager.recentNotes
+            return allNotes.filter { recentFilePaths.contains($0.filePath) }
+        } else {
+            // If searching, filter all notes
+            return allNotes.filter { note in
+                note.title.localizedCaseInsensitiveContains(searchText) ||
+                note.content.localizedCaseInsensitiveContains(searchText)
+            }
+        }
+    }
     
     var body: some View {
-        ZStack {
-            if recentNotesManager.recentNotes.isEmpty {
-                emptyStateView
-            } else {
-                ScrollView(showsIndicators: false) {
-                    LazyVStack(spacing: 12) {
-                        ForEach(recentNotesManager.recentNotes, id: \.self) { filePath in
-                            if let note = try? FileNote.from(filePath: filePath) {
+        VStack(spacing: 0) {
+            // Search bar
+            HStack {
+                Image(systemName: "magnifyingglass")
+                    .foregroundColor(.secondary)
+                
+                TextField("Search all notes...", text: $searchText)
+                    .textFieldStyle(.plain)
+                    .focused($isSearchFieldFocused)
+                
+                if !searchText.isEmpty {
+                    Button(action: { searchText = "" }) {
+                        Image(systemName: "xmark.circle.fill")
+                            .foregroundColor(.secondary)
+                    }
+                    .buttonStyle(.plain)
+                }
+            }
+            .padding(.horizontal, 12)
+            .padding(.vertical, 10)
+            .background(.thinMaterial, in: RoundedRectangle(cornerRadius: 8))
+            .padding(.horizontal, 20)
+            .padding(.top, 16)
+
+            // Notes list
+            ZStack {
+                if filteredNotes.isEmpty {
+                    emptyStateView
+                } else {
+                    ScrollView(showsIndicators: false) {
+                        LazyVStack(spacing: 12) {
+                            ForEach(filteredNotes) { note in
                                 RecentNoteCard(note: note, onOpen: openNote)
                             }
                         }
-                    }
-                    .padding(.horizontal, 20)
-                    .padding(.vertical, 16)
-                    .padding(.top, 40) // Extra space for close button
-                }
-            }
-            
-            // Close button overlay - floating in top right
-            VStack {
-                HStack {
-                    Spacer()
-                    Button(action: {
-                        withAnimation(.easeOut(duration: 0.2)) {
-                            window?.close()
-                        }
-                    }) {
-                        Image(systemName: "xmark")
-                            .font(.system(size: 12, weight: .medium))
-                            .foregroundColor(.primary)
-                            .frame(width: 26, height: 26)
-                            .background(.thinMaterial, in: Circle())
-                            .shadow(color: .black.opacity(0.1), radius: 2, x: 0, y: 1)
-                    }
-                    .buttonStyle(.plain)
-                    .onHover { isHovered in
-                        if isHovered {
-                            NSCursor.pointingHand.push()
-                        } else {
-                            NSCursor.pop()
-                        }
+                        .padding(.horizontal, 20)
+                        .padding(.vertical, 16)
                     }
                 }
-                .padding(.top, 16)
-                .padding(.trailing, 16)
-                Spacer()
+                
+                
             }
+        }
+        .onAppear {
+            isSearchFieldFocused = true
+            notesManager.forceRefresh() // Ensure notes are loaded
         }
         .alert("Error", isPresented: $showError) {
             Button("OK", role: .cancel) {}
@@ -62,25 +78,25 @@ struct RecentNotesView: View {
             Text(errorMessage)
         }
     }
-    
+
     private var emptyStateView: some View {
         VStack(spacing: 28) {
             Circle()
                 .fill(.thinMaterial)
                 .frame(width: 100, height: 100)
                 .overlay(
-                    Image(systemName: "clock.arrow.circlepath")
+                    Image(systemName: searchText.isEmpty ? "clock.arrow.circlepath" : "magnifyingglass")
                         .font(.system(size: 40, weight: .light))
                         .foregroundColor(.secondary)
                 )
                 .shadow(color: .black.opacity(0.1), radius: 10, x: 0, y: 4)
             
             VStack(spacing: 12) {
-                Text("No Recent Notes")
+                Text(searchText.isEmpty ? "No Recent Notes" : "No Results Found")
                     .font(.system(size: 22, weight: .medium))
                     .foregroundColor(.primary)
                 
-                Text("Notes you open will appear here")
+                Text(searchText.isEmpty ? "Notes you open will appear here" : "Try a different search term.")
                     .font(.system(size: 16))
                     .foregroundColor(.secondary)
                     .multilineTextAlignment(.center)

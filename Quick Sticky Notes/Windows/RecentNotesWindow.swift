@@ -1,7 +1,7 @@
 import SwiftUI
 import AppKit
 
-class RecentNotesWindow: NSWindow {
+class RecentNotesWindow: NSWindow, NSWindowDelegate {
     static let frameAutosaveName = "RecentNotesWindowFrame"
     static var lastWindowFrame: NSRect?
     
@@ -66,7 +66,12 @@ class RecentNotesWindow: NSWindow {
         )
         
         // Set delegate to handle window state changes
-        delegate = WindowStateDelegate.shared
+        delegate = self
+    }
+    
+    func windowDidResignKey(_ notification: Notification) {
+        // Automatically close the window when it loses focus
+        close()
     }
     
     override var canBecomeKey: Bool { true }
