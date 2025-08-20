@@ -31,6 +31,13 @@ class AppDelegate: NSObject, NSApplicationDelegate {
     func applicationDidFinishLaunching(_ notification: Notification) {
         NSWindow.allowsAutomaticWindowTabbing = false
         
+        // Set default dock icon preference on first launch
+        if !UserDefaults.standard.bool(forKey: "has_launched_before") {
+            // On first launch, default to hiding dock icon (menu bar only mode)
+            UserDefaults.standard.set(true, forKey: "hideDockIcon")
+            UserDefaults.standard.synchronize()
+        }
+        
         // Apply dock icon visibility preference
         if UserDefaults.standard.bool(forKey: "hideDockIcon") {
             NSApp.setActivationPolicy(.accessory)
@@ -205,6 +212,13 @@ class AppDelegate: NSObject, NSApplicationDelegate {
         menu.addItem(scratchpadItem)
         menu.addItem(NSMenuItem.separator())
         
+        // Add dock icon toggle
+        let isDockHidden = NSApp.activationPolicy() == .accessory
+        let dockToggleTitle = isDockHidden ? "Show Dock Icon" : "Hide Dock Icon"
+        let dockToggleItem = NSMenuItem(title: dockToggleTitle, action: #selector(toggleDockIcon), keyEquivalent: "")
+        menu.addItem(dockToggleItem)
+        
+        menu.addItem(NSMenuItem.separator())
         menu.addItem(NSMenuItem(title: "Preferences", action: #selector(showPreferences), keyEquivalent: ""))
         
         // Add Support submenu
@@ -333,6 +347,22 @@ class AppDelegate: NSObject, NSApplicationDelegate {
         Task {
             await ScratchpadService.shared.toggleScratchpad()
         }
+    }
+    
+    @objc private func toggleDockIcon() {
+        let currentPolicy = NSApp.activationPolicy()
+        let newPolicy: NSApplication.ActivationPolicy = currentPolicy == .accessory ? .regular : .accessory
+        let hideIcon = newPolicy == .accessory
+        
+        // Update the activation policy
+        NSApp.setActivationPolicy(newPolicy)
+        
+        // Save the preference
+        UserDefaults.standard.set(hideIcon, forKey: "hideDockIcon")
+        UserDefaults.standard.synchronize()
+        
+        // Update the menu to reflect the new state
+        createMenu()
     }
     
     private func setupNotificationObservers() {
