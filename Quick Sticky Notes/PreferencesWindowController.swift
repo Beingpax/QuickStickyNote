@@ -46,6 +46,7 @@ struct PreferencesView: View {
     @State private var showingUpgradePrompt = false
     @State private var hideDockIcon: Bool = true
     @State private var launchAtLogin: Bool = true
+    @State private var showingScratchpadInfo = false
     
     var body: some View {
         ScrollView {
@@ -140,28 +141,22 @@ struct PreferencesView: View {
                                 .controlSize(.large)
                             KeyboardShortcuts.Recorder("Switch Editor Mode:", name: .switchEditorMode)
                                 .controlSize(.large)
-                            KeyboardShortcuts.Recorder("Open Scratchpad:", name: .openScratchpad)
-                                .controlSize(.large)
-                        }
-                    }
-                    
-                    // Scratchpad
-                    SettingSection(title: "Scratchpad", icon: "note.text", iconColor: Color(hex: "#4ECDC4")) {
-                        VStack(alignment: .leading, spacing: 12) {
-                            GroupBox {
-                                VStack(alignment: .leading, spacing: 8) {
-                                    Text("What is Scratchpad?")
-                                        .font(.system(size: 14, weight: .medium))
-                                        .foregroundColor(.white)
-                                    
-                                    Text("Scratchpad is a dedicated note that opens instantly for quick thoughts and temporary content. It's perfect for jotting down quick ideas or temporary information.")
-                                        .font(.system(size: 13))
-                                        .foregroundColor(.secondary)
-                                        .fixedSize(horizontal: false, vertical: true)
+                            HStack {
+                                KeyboardShortcuts.Recorder("Open Scratchpad:", name: .openScratchpad)
+                                    .controlSize(.large)
+                                
+                                Button(action: {
+                                    showingScratchpadInfo = true
+                                }) {
+                                    Image(systemName: "info.circle")
+                                        .foregroundColor(Color(hex: "#4ECDC4"))
+                                        .font(.system(size: 16))
                                 }
-                                .padding(12)
+                                .buttonStyle(.plain)
+                                .popover(isPresented: $showingScratchpadInfo) {
+                                    InfoPopover(text: "Scratchpad is a dedicated note that opens instantly for quick thoughts and temporary content. Perfect for jotting down quick ideas or temporary information.")
+                                }
                             }
-                            .groupBoxStyle(ModernGroupBoxStyle())
                         }
                     }
                     
@@ -179,13 +174,6 @@ struct PreferencesView: View {
                                     hideDockIcon = DockIconManager.shared.isDockIconHidden
                                 }
                             
-                            Text("Run app as a menu bar application without a dock icon. Some changes may require app restart.")
-                                .font(.caption)
-                                .foregroundColor(Color(hex: "#9B9B9B"))
-                            
-                            Divider()
-                                .padding(.vertical, 8)
-                            
                             Toggle("Launch at Login", isOn: $launchAtLogin)
                                 .onChange(of: launchAtLogin) { newValue in
                                     LaunchAtLogin.isEnabled = newValue
@@ -193,13 +181,10 @@ struct PreferencesView: View {
                                 .onAppear {
                                     launchAtLogin = LaunchAtLogin.isEnabled
                                 }
-                            
-                            Text("Automatically launch Quick Sticky Notes when you log in to your Mac.")
-                                .font(.caption)
-                                .foregroundColor(Color(hex: "#9B9B9B"))
                         }
                     }
                     
+                    #if DEBUG
                     // Advanced
                     SettingSection(title: "Advanced", icon: "gear", iconColor: Color(hex: "#9B9B9B")) {
                         VStack(alignment: .leading, spacing: 12) {
@@ -213,14 +198,6 @@ struct PreferencesView: View {
                                 Label("Reset Onboarding", systemImage: "arrow.counterclockwise")
                             }
                             .buttonStyle(ModernSecondaryButtonStyle())
-                            
-                            Text("Show the onboarding experience again")
-                                .font(.caption)
-                                .foregroundColor(Color(hex: "#9B9B9B"))
-                            
-                            #if DEBUG
-                            Divider()
-                                .padding(.vertical, 8)
                             
                             Text("Development Testing")
                                 .font(.system(size: 14, weight: .medium))
@@ -240,9 +217,9 @@ struct PreferencesView: View {
                                 Label("Reset All Purchases", systemImage: "trash")
                             }
                             .buttonStyle(ModernDestructiveButtonStyle())
-                            #endif
                         }
                     }
+                    #endif
                 }
                 
                 Text("Note: Changes are saved automatically")
@@ -362,6 +339,21 @@ struct ModernDestructiveButtonStyle: ButtonStyle {
             .background(Color(hex: "#FF6B6B").opacity(0.2))
             .foregroundColor(Color(hex: "#FF6B6B"))
             .cornerRadius(8)
+    }
+}
+
+// MARK: - Supporting Views
+struct InfoPopover: View {
+    let text: String
+    
+    var body: some View {
+        Text(text)
+            .font(.system(size: 14))
+            .foregroundColor(.secondary)
+            .fixedSize(horizontal: false, vertical: true)
+            .lineLimit(nil)
+            .padding(12)
+            .frame(width: 280)
     }
 }
 
