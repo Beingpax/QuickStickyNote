@@ -1,5 +1,6 @@
 import SwiftUI
 import KeyboardShortcuts
+import LaunchAtLogin
 
 @main
 struct QuickStickyNotesApp: App {
@@ -47,6 +48,10 @@ class AppDelegate: NSObject, NSApplicationDelegate {
     private func initialize() {
         if !UserDefaults.standard.bool(forKey: "has_launched_before") {
             UserDefaults.standard.set(true, forKey: "has_launched_before")
+            
+            // Set default values for first launch
+            LaunchAtLogin.isEnabled = true
+            DockIconManager.shared.setDefaultIfFirstLaunch()
         }
         
         if !UserDefaults.standard.bool(forKey: "hasCompletedOnboarding") {

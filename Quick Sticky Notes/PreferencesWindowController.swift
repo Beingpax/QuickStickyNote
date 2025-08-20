@@ -1,6 +1,7 @@
 import Cocoa
 import SwiftUI
 import KeyboardShortcuts
+import LaunchAtLogin
 
 class PreferencesWindowController: NSWindowController {
     init() {
@@ -43,7 +44,8 @@ struct PreferencesView: View {
     @StateObject private var proManager = ProManager.shared
     @State private var showingResetAlert = false
     @State private var showingUpgradePrompt = false
-    @State private var hideDockIcon: Bool = false
+    @State private var hideDockIcon: Bool = true
+    @State private var launchAtLogin: Bool = true
     
     var body: some View {
         ScrollView {
@@ -167,7 +169,6 @@ struct PreferencesView: View {
                     SettingSection(title: "App Appearance", icon: "macwindow", iconColor: Color(hex: "#FF6B6B")) {
                         VStack(alignment: .leading, spacing: 12) {
                             Toggle("Hide Dock Icon", isOn: $hideDockIcon)
-                                .foregroundColor(.white)
                                 .onChange(of: hideDockIcon) { newValue in
                                     DockIconManager.shared.isDockIconHidden = newValue
                                 }
@@ -179,6 +180,21 @@ struct PreferencesView: View {
                                 }
                             
                             Text("Run app as a menu bar application without a dock icon. Some changes may require app restart.")
+                                .font(.caption)
+                                .foregroundColor(Color(hex: "#9B9B9B"))
+                            
+                            Divider()
+                                .padding(.vertical, 8)
+                            
+                            Toggle("Launch at Login", isOn: $launchAtLogin)
+                                .onChange(of: launchAtLogin) { newValue in
+                                    LaunchAtLogin.isEnabled = newValue
+                                }
+                                .onAppear {
+                                    launchAtLogin = LaunchAtLogin.isEnabled
+                                }
+                            
+                            Text("Automatically launch Quick Sticky Notes when you log in to your Mac.")
                                 .font(.caption)
                                 .foregroundColor(Color(hex: "#9B9B9B"))
                         }
@@ -349,30 +365,6 @@ struct ModernDestructiveButtonStyle: ButtonStyle {
     }
 }
 
-struct ModernToggleStyle: ToggleStyle {
-    func makeBody(configuration: Configuration) -> some View {
-        HStack {
-            configuration.label
-                .foregroundColor(.white)
-            Spacer()
-            Rectangle()
-                .fill(configuration.isOn ? Color(hex: "#FF6B6B") : Color(hex: "#4A4A4A"))
-                .frame(width: 40, height: 24)
-                .cornerRadius(12)
-                .overlay(
-                    Circle()
-                        .fill(.white)
-                        .padding(2)
-                        .offset(x: configuration.isOn ? 8 : -8)
-                )
-                .onTapGesture {
-                    withAnimation(.spring()) {
-                        configuration.isOn.toggle()
-                    }
-                }
-        }
-    }
-}
 // MARK: - Supporting Styles
 struct ModernGroupBoxStyle: GroupBoxStyle {
     func makeBody(configuration: Configuration) -> some View {

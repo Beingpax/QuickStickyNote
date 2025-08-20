@@ -30,4 +30,11 @@ class DockIconManager {
         }
         updateDockIconVisibility()
     }
+    
+    func setDefaultIfFirstLaunch() {
+        // This method can be called from AppDelegate to ensure defaults are set
+        if !UserDefaults.standard.bool(forKey: "has_launched_before") {
+            UserDefaults.standard.set(true, forKey: "hideDockIcon")
+        }
+    }
 }

@@ -10,6 +10,7 @@
 		E15884912D086D3B00A1AF72 /* MarkdownUI in Frameworks */ = {isa = PBXBuildFile; productRef = E15884902D086D3B00A1AF72 /* MarkdownUI */; };
 		E15884942D086D5000A1AF72 /* KeyboardShortcuts in Frameworks */ = {isa = PBXBuildFile; productRef = E15884932D086D5000A1AF72 /* KeyboardShortcuts */; };
 		E1985DE82DEEC84B0002951C /* Markdown in Frameworks */ = {isa = PBXBuildFile; productRef = E1985DE72DEEC84B0002951C /* Markdown */; };
+		E1A8FA052E56301F00A574A7 /* LaunchAtLogin in Frameworks */ = {isa = PBXBuildFile; productRef = E1A8FA042E56301F00A574A7 /* LaunchAtLogin */; };
 		E1A9BA322D3547A0007B47B6 /* MarkdownUI in Frameworks */ = {isa = PBXBuildFile; productRef = E1A9BA312D3547A0007B47B6 /* MarkdownUI */; };
 		E1EA35D62D355D0D00FC8641 /* StoreKit.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = E1EA35D52D355D0D00FC8641 /* StoreKit.framework */; };
 /* End PBXBuildFile section */
@@ -140,6 +141,7 @@
 				E1EA35D62D355D0D00FC8641 /* StoreKit.framework in Frameworks */,
 				E15884912D086D3B00A1AF72 /* MarkdownUI in Frameworks */,
 				E15884942D086D5000A1AF72 /* KeyboardShortcuts in Frameworks */,
+				E1A8FA052E56301F00A574A7 /* LaunchAtLogin in Frameworks */,
 				E1985DE82DEEC84B0002951C /* Markdown in Frameworks */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
@@ -241,6 +243,7 @@
 				E15884902D086D3B00A1AF72 /* MarkdownUI */,
 				E15884932D086D5000A1AF72 /* KeyboardShortcuts */,
 				E1985DE72DEEC84B0002951C /* Markdown */,
+				E1A8FA042E56301F00A574A7 /* LaunchAtLogin */,
 			);
 			productName = "Quick Sticky Notes";
 			productReference = E15884342D086CA600A1AF72 /* Quick Sticky Notes.app */;
@@ -408,6 +411,7 @@
 				E158848F2D086D3B00A1AF72 /* XCRemoteSwiftPackageReference "MarkdownUI" */,
 				E15884922D086D5000A1AF72 /* XCRemoteSwiftPackageReference "KeyboardShortcuts" */,
 				E1985DE62DEEC84B0002951C /* XCRemoteSwiftPackageReference "swift-markdown" */,
+				E1A8FA032E56301F00A574A7 /* XCRemoteSwiftPackageReference "LaunchAtLogin-Modern" */,
 			);
 			preferredProjectObjectVersion = 77;
 			productRefGroup = E15884352D086CA600A1AF72 /* Products */;
@@ -1038,6 +1042,14 @@
 				minimumVersion = 0.6.0;
 			};
 		};
+		E1A8FA032E56301F00A574A7 /* XCRemoteSwiftPackageReference "LaunchAtLogin-Modern" */ = {
+			isa = XCRemoteSwiftPackageReference;
+			repositoryURL = "https://github.com/sindresorhus/LaunchAtLogin-Modern";
+			requirement = {
+				branch = main;
+				kind = branch;
+			};
+		};
 /* End XCRemoteSwiftPackageReference section */
 
 /* Begin XCSwiftPackageProductDependency section */
@@ -1055,6 +1067,11 @@
 			isa = XCSwiftPackageProductDependency;
 			package = E1985DE62DEEC84B0002951C /* XCRemoteSwiftPackageReference "swift-markdown" */;
 			productName = Markdown;
+		};
+		E1A8FA042E56301F00A574A7 /* LaunchAtLogin */ = {
+			isa = XCSwiftPackageProductDependency;
+			package = E1A8FA032E56301F00A574A7 /* XCRemoteSwiftPackageReference "LaunchAtLogin-Modern" */;
+			productName = LaunchAtLogin;
 		};
 		E1A9BA312D3547A0007B47B6 /* MarkdownUI */ = {
 			isa = XCSwiftPackageProductDependency;
