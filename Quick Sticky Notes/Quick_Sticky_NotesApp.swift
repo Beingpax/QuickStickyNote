@@ -18,7 +18,7 @@ struct QuickStickyNotesApp: App {
 
 @MainActor
 class AppDelegate: NSObject, NSApplicationDelegate {
-    var statusItem: NSStatusItem?
+    private var menuBarManager: MenuBarManager?
     var notesListWindowController: NSWindowController?
     var quickNoteWindowController: NSWindowController?
     var onboardingWindowController: NSWindowController?
@@ -43,7 +43,10 @@ class AppDelegate: NSObject, NSApplicationDelegate {
             NSApp.setActivationPolicy(.accessory)
         }
         
-        setupMenuBar()
+        // Initialize menu bar manager
+        menuBarManager = MenuBarManager(appDelegate: self)
+        menuBarManager?.setupMenuBar()
+        
         setupKeyboardShortcuts()
         setupNotificationObservers()
         
@@ -92,15 +95,6 @@ class AppDelegate: NSObject, NSApplicationDelegate {
             }
         }
         return true
-    }
-    
-    private func setupMenuBar() {
-        statusItem = NSStatusBar.system.statusItem(withLength: NSStatusItem.variableLength)
-        
-        if let statusButton = statusItem?.button {
-            statusButton.image = NSImage(systemSymbolName: "note.text", accessibilityDescription: "Quick Sticky Notes")
-            createMenu()
-        }
     }
     
     private func showUpgradePrompt() {
@@ -197,44 +191,7 @@ class AppDelegate: NSObject, NSApplicationDelegate {
         }
     }
     
-    public func createMenu() {
-        let menu = NSMenu()
-        
-        // Add menu items without default shortcuts
-        let newNoteItem = NSMenuItem(title: "New Note", action: #selector(newNote), keyEquivalent: "")
-        let recentNotesItem = NSMenuItem(title: "Recent Notes", action: #selector(showRecentNotes), keyEquivalent: "")
-        let viewNotesItem = NSMenuItem(title: "View All Notes", action: #selector(showNotesList), keyEquivalent: "")
-        let scratchpadItem = NSMenuItem(title: "Toggle Scratchpad", action: #selector(toggleScratchpad), keyEquivalent: "")
-        
-        menu.addItem(newNoteItem)
-        menu.addItem(recentNotesItem)
-        menu.addItem(viewNotesItem)
-        menu.addItem(scratchpadItem)
-        menu.addItem(NSMenuItem.separator())
-        
-        // Add dock icon toggle
-        let isDockHidden = NSApp.activationPolicy() == .accessory
-        let dockToggleTitle = isDockHidden ? "Show Dock Icon" : "Hide Dock Icon"
-        let dockToggleItem = NSMenuItem(title: dockToggleTitle, action: #selector(toggleDockIcon), keyEquivalent: "")
-        menu.addItem(dockToggleItem)
-        
-        menu.addItem(NSMenuItem.separator())
-        menu.addItem(NSMenuItem(title: "Preferences", action: #selector(showPreferences), keyEquivalent: ""))
-        
-        // Add Support submenu
-        let supportMenu = NSMenu()
-        supportMenu.addItem(NSMenuItem(title: "About Quick Sticky Notes", action: #selector(showAbout), keyEquivalent: ""))
-        let supportMenuItem = NSMenuItem(title: "Support", action: nil, keyEquivalent: "")
-        supportMenuItem.submenu = supportMenu
-        menu.addItem(supportMenuItem)
-        
-        menu.addItem(NSMenuItem.separator())
-        menu.addItem(NSMenuItem(title: "Quit", action: #selector(NSApplication.terminate(_:)), keyEquivalent: "q"))
-        
-        statusItem?.menu = menu
-    }
-    
-    @objc private func newNote() {
+    @objc func newNote() {
         Task { @MainActor in
             // Activate app first
             NSApp.activate(ignoringOtherApps: true)
@@ -252,7 +209,7 @@ class AppDelegate: NSObject, NSApplicationDelegate {
         }
     }
     
-    @objc private func showNotesList() {
+    @objc func showNotesList() {
         Task { @MainActor in
             // Activate app first
             NSApp.activate(ignoringOtherApps: true)
@@ -286,13 +243,13 @@ class AppDelegate: NSObject, NSApplicationDelegate {
         }
     }
     
-    @objc private func showPreferences() {
+    @objc func showPreferences() {
         let preferencesWindow = PreferencesWindowController()
         preferencesWindow.showWindow(nil)
         NSApp.activate(ignoringOtherApps: true)
     }
     
-    @objc private func showAbout() {
+    @objc func showAbout() {
         let window = NSWindow(
             contentRect: NSRect(x: 0, y: 0, width: 600, height: 700),
             styleMask: [.titled, .closable],
@@ -319,7 +276,7 @@ class AppDelegate: NSObject, NSApplicationDelegate {
         NSApp.activate(ignoringOtherApps: true)
     }
     
-    @objc private func showRecentNotes() {
+    @objc func showRecentNotes() {
         Task { @MainActor in
             // Activate app first
             NSApp.activate(ignoringOtherApps: true)
@@ -343,26 +300,10 @@ class AppDelegate: NSObject, NSApplicationDelegate {
         }
     }
     
-    @objc private func toggleScratchpad() {
+    @objc func toggleScratchpad() {
         Task {
             await ScratchpadService.shared.toggleScratchpad()
         }
-    }
-    
-    @objc private func toggleDockIcon() {
-        let currentPolicy = NSApp.activationPolicy()
-        let newPolicy: NSApplication.ActivationPolicy = currentPolicy == .accessory ? .regular : .accessory
-        let hideIcon = newPolicy == .accessory
-        
-        // Update the activation policy
-        NSApp.setActivationPolicy(newPolicy)
-        
-        // Save the preference
-        UserDefaults.standard.set(hideIcon, forKey: "hideDockIcon")
-        UserDefaults.standard.synchronize()
-        
-        // Update the menu to reflect the new state
-        createMenu()
     }
     
     private func setupNotificationObservers() {

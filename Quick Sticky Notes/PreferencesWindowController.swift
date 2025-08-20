@@ -182,10 +182,8 @@ struct PreferencesView: View {
                                         UserDefaults.standard.set(newValue, forKey: "hideDockIcon")
                                         UserDefaults.standard.synchronize()
                                         
-                                        // Update menu
-                                        if let appDelegate = NSApp.delegate as? AppDelegate {
-                                            appDelegate.createMenu()
-                                        }
+                                        // Update menu through notification
+                                        NotificationCenter.default.post(name: NSNotification.Name("DockIconToggled"), object: nil)
                                         
                                         // Force a small delay to ensure UI updates properly
                                         DispatchQueue.main.asyncAfter(deadline: .now() + 0.1) {
