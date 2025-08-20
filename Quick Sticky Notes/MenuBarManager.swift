@@ -15,14 +15,13 @@ class MenuBarManager: NSObject {
     private func setupNotificationObservers() {
         NotificationCenter.default.addObserver(
             self,
-            selector: #selector(handleDockIconToggle),
-            name: NSNotification.Name("DockIconToggled"),
+            selector: #selector(updateMenu),
+            name: NSNotification.Name("DockIconChanged"),
             object: nil
         )
     }
     
-    @objc private func handleDockIconToggle() {
-        // Update menu when dock icon preference changes from Preferences
+    @objc private func updateMenu() {
         createMenu()
     }
     
@@ -51,9 +50,10 @@ class MenuBarManager: NSObject {
         menu.addItem(NSMenuItem.separator())
         
         // Add dock icon toggle
-        let isDockHidden = NSApp.activationPolicy() == .accessory
+        let isDockHidden = DockIconManager.shared.isDockIconHidden
         let dockToggleTitle = isDockHidden ? "Show Dock Icon" : "Hide Dock Icon"
         let dockToggleItem = NSMenuItem(title: dockToggleTitle, action: #selector(toggleDockIcon), keyEquivalent: "")
+        dockToggleItem.target = self
         menu.addItem(dockToggleItem)
         
         menu.addItem(NSMenuItem.separator())
@@ -99,21 +99,6 @@ class MenuBarManager: NSObject {
     }
     
     @objc private func toggleDockIcon() {
-        let currentPolicy = NSApp.activationPolicy()
-        let newPolicy: NSApplication.ActivationPolicy = currentPolicy == .accessory ? .regular : .accessory
-        let hideIcon = newPolicy == .accessory
-        
-        // Update the activation policy
-        NSApp.setActivationPolicy(newPolicy)
-        
-        // Save the preference
-        UserDefaults.standard.set(hideIcon, forKey: "hideDockIcon")
-        UserDefaults.standard.synchronize()
-        
-        // Update the menu to reflect the new state
-        createMenu()
-        
-        // Also update the preferences UI if it's open
-        NotificationCenter.default.post(name: NSNotification.Name("DockIconToggled"), object: nil)
+        DockIconManager.shared.isDockIconHidden.toggle()
     }
 }

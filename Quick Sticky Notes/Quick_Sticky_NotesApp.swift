@@ -31,17 +31,8 @@ class AppDelegate: NSObject, NSApplicationDelegate {
     func applicationDidFinishLaunching(_ notification: Notification) {
         NSWindow.allowsAutomaticWindowTabbing = false
         
-        // Set default dock icon preference on first launch
-        if !UserDefaults.standard.bool(forKey: "has_launched_before") {
-            // On first launch, default to hiding dock icon (menu bar only mode)
-            UserDefaults.standard.set(true, forKey: "hideDockIcon")
-            UserDefaults.standard.synchronize()
-        }
-        
-        // Apply dock icon visibility preference
-        if UserDefaults.standard.bool(forKey: "hideDockIcon") {
-            NSApp.setActivationPolicy(.accessory)
-        }
+        // Setup dock icon state
+        DockIconManager.shared.setupInitialState()
         
         // Initialize menu bar manager
         menuBarManager = MenuBarManager(appDelegate: self)
