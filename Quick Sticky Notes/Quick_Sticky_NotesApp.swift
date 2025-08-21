@@ -50,7 +50,6 @@ class AppDelegate: NSObject, NSApplicationDelegate {
             UserDefaults.standard.set(true, forKey: "has_launched_before")
             
             // Set default values for first launch
-            LaunchAtLogin.isEnabled = true
             DockIconManager.shared.setDefaultIfFirstLaunch()
         }
         
