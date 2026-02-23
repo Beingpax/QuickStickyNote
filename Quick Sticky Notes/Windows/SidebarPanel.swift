@@ -143,6 +143,9 @@ class SidebarManager {
     private let triggerZone: CGFloat = 3
     private let hideDelay:   TimeInterval = 0.4
 
+    /// When true (user is viewing a note), the panel ignores mouse-exit hide requests.
+    var isInDetailMode: Bool = false
+
     private init() {}
 
     // MARK: Lifecycle
@@ -290,6 +293,7 @@ class SidebarManager {
     }
 
     func scheduleHide() {
+        guard !isInDetailMode else { return }   // Never auto-hide while a note is open
         hideWorkItem?.cancel()
         let item = DispatchWorkItem { [weak self] in self?.hidePanel() }
         hideWorkItem = item
