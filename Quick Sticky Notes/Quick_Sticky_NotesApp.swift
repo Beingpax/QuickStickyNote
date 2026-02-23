@@ -31,17 +31,20 @@ class AppDelegate: NSObject, NSApplicationDelegate {
     
     func applicationDidFinishLaunching(_ notification: Notification) {
         NSWindow.allowsAutomaticWindowTabbing = false
-        
+
         // Setup dock icon state
         DockIconManager.shared.setupInitialState()
-        
+
         // Initialize menu bar manager
         menuBarManager = MenuBarManager(appDelegate: self)
         menuBarManager?.setupMenuBar()
-        
+
         setupKeyboardShortcuts()
         setupNotificationObservers()
-        
+
+        // Start the right-edge sidebar panel
+        SidebarManager.shared.start()
+
         initialize()
     }
     
