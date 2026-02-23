@@ -119,6 +119,11 @@ class SidebarPanelWindow: NSPanel {
 
     override var canBecomeKey: Bool  { true  }
     override var canBecomeMain: Bool { false }
+
+    /// Called by AppKit when the user presses ESC (standard responder-chain cancel action).
+    override func cancelOperation(_ sender: Any?) {
+        Task { @MainActor in SidebarManager.shared.handleEscape() }
+    }
 }
 
 // MARK: - Sidebar Manager
@@ -165,6 +170,7 @@ class SidebarManager {
         observeScreenChanges()
     }
 
+
     func stop() {
         globalMouseMonitor.map { NSEvent.removeMonitor($0) }
         localMouseMonitor.map  { NSEvent.removeMonitor($0) }
@@ -185,8 +191,11 @@ class SidebarManager {
         closePills()
         for screen in NSScreen.screens {
             let pill = PillIndicatorWindow()
-            positionPill(pill, on: screen)
-            pill.orderFrontRegardless()
+            let w = PillIndicatorWindow.pillWindowWidth
+            let h = PillIndicatorWindow.pillWindowHeight
+            let y = screen.visibleFrame.midY - h / 2
+            pill.setFrame(NSRect(x: screen.frame.maxX - w, y: y, width: w, height: h), display: false)
+            pill.orderFront(nil)
             pillWindows.append(pill)
         }
     }
@@ -194,17 +203,6 @@ class SidebarManager {
     private func closePills() {
         pillWindows.forEach { $0.close() }
         pillWindows = []
-    }
-
-    private func positionPill(_ pill: PillIndicatorWindow, on screen: NSScreen) {
-        let w = PillIndicatorWindow.pillWindowWidth
-        let h = PillIndicatorWindow.pillWindowHeight
-        pill.setFrame(NSRect(
-            x: screen.frame.maxX - w,
-            y: screen.visibleFrame.midY - h / 2,
-            width: w,
-            height: h
-        ), display: false)
     }
 
     // MARK: Screen Change Handling
@@ -233,7 +231,7 @@ class SidebarManager {
             return
         }
 
-        // If panel is currently visible, keep it positioned correctly.
+        // Re-anchor the panel frame in case resolution or arrangement changed.
         if isVisible, let active = activeScreen {
             updatePanelFrame(visible: true, animated: false, on: active)
         }
@@ -242,18 +240,32 @@ class SidebarManager {
     // MARK: Mouse Monitoring
 
     private func startMonitoring() {
+        // Apple docs: global monitor blocks are called on the main thread.
+        // MainActor.assumeIsolated asserts that fact to the Swift compiler,
+        // giving proper @MainActor isolation without any dispatch overhead.
         globalMouseMonitor = NSEvent.addGlobalMonitorForEvents(matching: [.mouseMoved]) { [weak self] _ in
-            DispatchQueue.main.async { self?.checkMousePosition() }
+            MainActor.assumeIsolated { self?.checkMousePosition() }
         }
+        // Local monitor is called synchronously on the main thread.
         localMouseMonitor = NSEvent.addLocalMonitorForEvents(matching: [.mouseMoved]) { [weak self] event in
-            self?.checkMousePosition()
+            MainActor.assumeIsolated { self?.checkMousePosition() }
             return event
         }
     }
 
     private func checkMousePosition() {
-        guard let screen = screenUnderCursor() else { return }
-        if NSEvent.mouseLocation.x >= screen.frame.maxX - triggerZone {
+        // Cache location once — NSEvent.mouseLocation is a system call.
+        let loc = NSEvent.mouseLocation
+
+        // Fast pre-check: skip the full screen scan if the cursor isn't
+        // within 60px of any screen's right edge. This runs on every
+        // mouse-moved event, so it must be as cheap as possible.
+        guard NSScreen.screens.contains(where: { loc.x >= $0.frame.maxX - 60 }) else { return }
+
+        // Full screen lookup — only reached when near a right edge.
+        guard let screen = NSScreen.screens.first(where: { $0.frame.contains(loc) }) else { return }
+
+        if loc.x >= screen.frame.maxX - triggerZone {
             showPanel(on: screen)
         }
     }
@@ -288,7 +300,10 @@ class SidebarManager {
 
         activeScreen = screen
         isVisible = true
-        panelWindow?.orderFrontRegardless()
+        // makeKeyAndOrderFront brings the panel to front and makes it key
+        // (so text fields respond to keyboard). Because it's a .nonactivatingPanel
+        // this does NOT activate the app or steal focus from other apps.
+        panelWindow?.makeKeyAndOrderFront(nil)
         updatePanelFrame(visible: true, animated: true, on: screen)
     }
 
@@ -305,6 +320,15 @@ class SidebarManager {
         hideWorkItem = nil
     }
 
+    func handleEscape() {
+        if isInDetailMode {
+            // Tell the detail view to navigate back to the list.
+            NotificationCenter.default.post(name: .sidebarNavigateBack, object: nil)
+        } else {
+            hidePanel()
+        }
+    }
+
     func hidePanel() {
         guard isVisible, let screen = activeScreen else { return }
         isVisible = false
@@ -319,7 +343,7 @@ class SidebarManager {
         let visibleFrame = screen.visibleFrame
         let x: CGFloat = visible
             ? screen.frame.maxX - Self.panelWidth
-            : screen.frame.maxX   // Off-screen to the right of this monitor
+            : screen.frame.maxX + 60   // Extra offset so panel shadow doesn't bleed over the pill
 
         let targetFrame = NSRect(
             x: x,
@@ -343,10 +367,16 @@ class SidebarManager {
         guard let window = panelWindow else { return }
         let visibleFrame = screen.visibleFrame
         window.setFrame(NSRect(
-            x: screen.frame.maxX,
+            x: screen.frame.maxX + 60,
             y: visibleFrame.minY,
             width: Self.panelWidth,
             height: visibleFrame.height
         ), display: false)
     }
+}
+
+// MARK: - Notification Names
+
+extension Notification.Name {
+    static let sidebarNavigateBack = Notification.Name("sidebarNavigateBack")
 }

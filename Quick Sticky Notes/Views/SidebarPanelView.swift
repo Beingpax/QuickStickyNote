@@ -35,16 +35,10 @@ struct SidebarPanelView: View {
         ZStack {
             if let note = selectedNote {
                 SidebarNoteDetailView(note: note, onBack: navigateBack)
-                    .transition(.asymmetric(
-                        insertion: .move(edge: .trailing),
-                        removal:   .move(edge: .trailing)
-                    ))
+                    .transition(.opacity)
             } else {
                 listView
-                    .transition(.asymmetric(
-                        insertion: .move(edge: .leading),
-                        removal:   .move(edge: .leading)
-                    ))
+                    .transition(.opacity)
             }
         }
         .frame(maxWidth: .infinity, maxHeight: .infinity)
@@ -190,14 +184,14 @@ struct SidebarPanelView: View {
 
     private func openNote(_ note: FileNote) {
         SidebarManager.shared.isInDetailMode = true
-        withAnimation(.easeInOut(duration: 0.22)) {
+        withAnimation(.easeInOut(duration: 0.18)) {
             selectedNote = note
         }
     }
 
     private func navigateBack() {
         SidebarManager.shared.isInDetailMode = false
-        withAnimation(.easeInOut(duration: 0.22)) {
+        withAnimation(.easeInOut(duration: 0.18)) {
             selectedNote = nil
         }
     }
@@ -218,27 +212,25 @@ struct SidebarPanelView: View {
 // MARK: - Note Detail View
 
 struct SidebarNoteDetailView: View {
-    let note: FileNote
     let onBack: () -> Void
 
-    @State private var content:   String
-    @State private var isSaving:  Bool = false
-    @State private var saveTask:  Task<Void, Never>? = nil
+    @State private var currentNote: FileNote
+    @State private var title:       String
+    @State private var content:     String
+    @State private var isSaving:         Bool = false
+    @State private var showColorPicker:  Bool = false
+    @State private var contentSaveTask: Task<Void, Never>? = nil
+    @State private var titleSaveTask:   Task<Void, Never>? = nil
 
     private var noteColor: Color {
-        if let c = NoteColor.defaultColors.first(where: { $0.name == note.colorName }) {
-            return Color(c.backgroundColor)
-        }
-        if let c = UserDefaults.standard.getCustomColors().first(where: { $0.name == note.colorName }) {
-            return Color(c.backgroundColor)
-        }
-        return Color(NoteColor.citrus.backgroundColor)
+        resolveColor(for: currentNote.colorName)
     }
 
     init(note: FileNote, onBack: @escaping () -> Void) {
-        self.note  = note
         self.onBack = onBack
-        _content = State(initialValue: note.content)
+        _currentNote = State(initialValue: note)
+        _title       = State(initialValue: note.title)
+        _content     = State(initialValue: note.content)
     }
 
     var body: some View {
@@ -249,6 +241,9 @@ struct SidebarNoteDetailView: View {
             editor
         }
         .frame(maxWidth: .infinity, maxHeight: .infinity)
+        .onReceive(NotificationCenter.default.publisher(for: .sidebarNavigateBack)) { _ in
+            onBack()
+        }
     }
 
     // MARK: Top Bar
@@ -269,11 +264,8 @@ struct SidebarNoteDetailView: View {
 
             Spacer()
 
-            // Save status indicator
             if isSaving {
-                ProgressView()
-                    .scaleEffect(0.55)
-                    .frame(width: 16, height: 16)
+                ProgressView().scaleEffect(0.55).frame(width: 16, height: 16)
             } else {
                 Image(systemName: "checkmark.circle")
                     .font(.system(size: 12))
@@ -282,26 +274,77 @@ struct SidebarNoteDetailView: View {
         }
         .padding(.horizontal, 14)
         .padding(.top, 14)
-        .padding(.bottom, 10)
+        .padding(.bottom, 8)
     }
 
-    // MARK: Title Row
+    // MARK: Title Row (color dot + title field)
 
     private var titleRow: some View {
         HStack(spacing: 8) {
-            RoundedRectangle(cornerRadius: 3, style: .continuous)
-                .fill(noteColor)
-                .frame(width: 10, height: 10)
-                .shadow(color: noteColor.opacity(0.4), radius: 2, x: 0, y: 1)
+            Button { showColorPicker.toggle() } label: {
+                RoundedRectangle(cornerRadius: 3, style: .continuous)
+                    .fill(noteColor)
+                    .frame(width: 12, height: 12)
+                    .shadow(color: noteColor.opacity(0.5), radius: 2, x: 0, y: 1)
+            }
+            .buttonStyle(.plain)
+            .popover(isPresented: $showColorPicker, arrowEdge: .bottom) {
+                colorPickerPopover
+            }
 
-            Text(note.title.isEmpty ? "Untitled" : note.title)
+            TextField("Untitled", text: $title)
                 .font(.system(size: 15, weight: .semibold))
+                .textFieldStyle(.plain)
                 .foregroundStyle(.primary)
-                .lineLimit(2)
-                .frame(maxWidth: .infinity, alignment: .leading)
+                .onChange(of: title) { _, _ in scheduleRename() }
         }
         .padding(.horizontal, 14)
         .padding(.bottom, 12)
+    }
+
+    private var colorPickerPopover: some View {
+        VStack(alignment: .leading, spacing: 10) {
+            let custom = UserDefaults.standard.getCustomColors()
+            HStack(spacing: 8) {
+                ForEach(NoteColor.defaultColors) { color in
+                    colorSwatch(color)
+                }
+            }
+            if !custom.isEmpty {
+                Divider()
+                HStack(spacing: 8) {
+                    ForEach(custom) { color in
+                        colorSwatch(color)
+                    }
+                }
+            }
+        }
+        .padding(12)
+    }
+
+    private func colorSwatch(_ color: NoteColor) -> some View {
+        let isSelected = currentNote.colorName == color.name
+        return Circle()
+            .fill(Color(color.backgroundColor))
+            .frame(width: 22, height: 22)
+            .overlay(
+                Circle()
+                    .strokeBorder(
+                        isSelected ? Color.primary.opacity(0.6) : Color.primary.opacity(0.15),
+                        lineWidth: isSelected ? 2 : 1
+                    )
+            )
+            .overlay(
+                isSelected
+                    ? Image(systemName: "checkmark")
+                        .font(.system(size: 8, weight: .bold))
+                        .foregroundStyle(.primary.opacity(0.7))
+                    : nil
+            )
+            .onTapGesture {
+                changeColor(to: color)
+                showColorPicker = false
+            }
     }
 
     // MARK: Editor
@@ -313,26 +356,62 @@ struct SidebarNoteDetailView: View {
             .background(.clear)
             .padding(.horizontal, 8)
             .padding(.vertical, 4)
-            .onChange(of: content) { _, _ in
-                scheduleSave()
-            }
+            .onChange(of: content) { _, _ in scheduleContentSave() }
     }
 
-    // MARK: Auto-Save
+    // MARK: Save / Rename / Color
 
-    private func scheduleSave() {
-        saveTask?.cancel()
-        saveTask = Task {
+    private func scheduleContentSave() {
+        contentSaveTask?.cancel()
+        contentSaveTask = Task {
             do { try await Task.sleep(nanoseconds: 800_000_000) } catch { return }
             guard !Task.isCancelled else { return }
             await MainActor.run { isSaving = true }
             do {
-                _ = try await NoteSaveService.shared.saveNote(note, newContent: content)
-            } catch {
-                print("Sidebar save error: \(error)")
-            }
+                let updated = try await NoteSaveService.shared.saveNote(currentNote, newContent: content)
+                await MainActor.run { currentNote = updated }
+            } catch { print("Content save error: \(error)") }
             await MainActor.run { isSaving = false }
         }
+    }
+
+    private func scheduleRename() {
+        titleSaveTask?.cancel()
+        titleSaveTask = Task {
+            do { try await Task.sleep(nanoseconds: 800_000_000) } catch { return }
+            guard !Task.isCancelled else { return }
+            let newTitle = title.trimmingCharacters(in: .whitespacesAndNewlines)
+            guard !newTitle.isEmpty else { return }
+            await MainActor.run { isSaving = true }
+            do {
+                let updated = try await NoteSaveService.shared.renameNote(currentNote, newTitle: newTitle)
+                await MainActor.run { currentNote = updated }
+            } catch { print("Rename error: \(error)") }
+            await MainActor.run { isSaving = false }
+        }
+    }
+
+    private func changeColor(to color: NoteColor) {
+        currentNote.colorName = color.name
+        contentSaveTask?.cancel()
+        contentSaveTask = Task {
+            await MainActor.run { isSaving = true }
+            do {
+                let updated = try await NoteSaveService.shared.saveNote(
+                    currentNote, newContent: content, colorName: color.name
+                )
+                await MainActor.run { currentNote = updated }
+            } catch { print("Color save error: \(error)") }
+            await MainActor.run { isSaving = false }
+        }
+    }
+
+    // MARK: Helpers
+
+    private func resolveColor(for name: String) -> Color {
+        if let c = NoteColor.defaultColors.first(where: { $0.name == name }) { return Color(c.backgroundColor) }
+        if let c = UserDefaults.standard.getCustomColors().first(where: { $0.name == name }) { return Color(c.backgroundColor) }
+        return Color(NoteColor.citrus.backgroundColor)
     }
 }
 
