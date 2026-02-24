@@ -255,6 +255,11 @@ html, body {
   color: var(--cm-fg-tertiary);
 }
 
+.cm-list-indent-1 { padding-left: 24px !important; }
+.cm-list-indent-2 { padding-left: 48px !important; }
+.cm-list-indent-3 { padding-left: 72px !important; }
+.cm-list-indent-4 { padding-left: 96px !important; }
+
 .cm-bullet-widget {
   display: inline-block;
   width: 18px;

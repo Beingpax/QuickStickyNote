@@ -199,33 +199,52 @@ const markdownDecorations = ViewPlugin.fromClass(
         }
 
         // ── Checkbox ──
-        const ck = t.match(/^(\s*[-*+]\s+\[[ xX]\]\s*)/);
+        const ck = t.match(/^(\s*)([-*+]\s+\[[ xX]\]\s)/);
         if (ck) {
-          const checked = /\[x\]/i.test(ck[1]);
-          decos.push(replaceWith(line.from, line.from + ck[1].length, new CheckboxWidget(checked, i)));
-          this.inlines(line, t, decos, act, ck[1].length);
+          const checked = /\[x\]/i.test(ck[2]);
+          const indent = Math.floor(ck[1].length / 2);
+          const ckStart = line.from + ck[1].length;
+          const ckEnd = line.from + ck[0].length;
+          if (indent > 0) {
+            decos.push(lineDeco(line.from, "cm-list-indent-" + Math.min(indent, 4)));
+            decos.push(hide(line.from, line.from + ck[1].length));
+          }
+          decos.push(replaceWith(ckStart, ckEnd, new CheckboxWidget(checked, i)));
+          this.inlines(line, t, decos, act, ck[0].length);
           continue;
         }
 
         // ── Unordered list ──
         const ul = t.match(/^(\s*)([-*+])(\s+)/);
         if (ul) {
+          const indent = Math.floor(ul[1].length / 2);
           const mStart = line.from + ul[1].length;
           const mEnd = line.from + ul[0].length;
+          if (indent > 0) {
+            decos.push(lineDeco(line.from, "cm-list-indent-" + Math.min(indent, 4)));
+            decos.push(hide(line.from, line.from + ul[1].length));
+          }
           if (!act) {
             decos.push(replaceWith(mStart, mEnd, new BulletWidget()));
           } else {
-            decos.push(mark(line.from, mEnd, "cm-list-mark"));
+            decos.push(mark(mStart, mEnd, "cm-list-mark"));
           }
           this.inlines(line, t, decos, act, ul[0].length);
           continue;
         }
 
         // ── Ordered list ──
-        const ol = t.match(/^(\s*\d+[.)]\s+)/);
+        const ol = t.match(/^(\s*)(\d+[.)]\s+)/);
         if (ol) {
-          decos.push(mark(line.from, line.from + ol[1].length, "cm-list-mark"));
-          this.inlines(line, t, decos, act, ol[1].length);
+          const indent = Math.floor(ol[1].length / 2);
+          if (indent > 0) {
+            decos.push(lineDeco(line.from, "cm-list-indent-" + Math.min(indent, 4)));
+            decos.push(hide(line.from, line.from + ol[1].length));
+          }
+          const numStart = line.from + ol[1].length;
+          const numEnd = line.from + ol[0].length;
+          decos.push(mark(numStart, numEnd, "cm-list-mark"));
+          this.inlines(line, t, decos, act, ol[0].length);
           continue;
         }
 
@@ -407,17 +426,21 @@ function listContinuation({ state, dispatch }) {
   const line = state.doc.lineAt(from);
   const t = line.text;
 
-  const ck = t.match(/^(\s*[-*+]\s+)\[[ xX]\]\s+(.*)/);
+  // Checkbox: "  - [ ] content" or "  - [x] content"
+  const ck = t.match(/^(\s*)([-*+])(\s+)\[[ xX]\]\s(.*)/);
   if (ck) {
-    if (!ck[2].trim()) {
+    if (!ck[4].trim()) {
+      // Empty checkbox line — remove it
       dispatch({ changes: { from: line.from, to: line.to, insert: "" }, selection: { anchor: line.from } });
       return true;
     }
-    const ins = "\n" + ck[1] + "[ ] ";
+    // Continue with new unchecked checkbox, preserving indent
+    const ins = "\n" + ck[1] + ck[2] + ck[3] + "[ ] ";
     dispatch({ changes: { from, to, insert: ins }, selection: { anchor: from + ins.length } });
     return true;
   }
 
+  // Unordered list: "  - content"
   const bul = t.match(/^(\s*)([-*+])(\s+)(.*)/);
   if (bul) {
     if (!bul[4].trim()) {
@@ -429,6 +452,7 @@ function listContinuation({ state, dispatch }) {
     return true;
   }
 
+  // Ordered list: "  1. content"
   const num = t.match(/^(\s*)(\d+)([.)]\s+)(.*)/);
   if (num) {
     if (!num[4].trim()) {
@@ -443,10 +467,17 @@ function listContinuation({ state, dispatch }) {
   return false;
 }
 
+function isList(text) {
+  return /^\s*[-*+]\s/.test(text) || /^\s*\d+[.)]\s/.test(text);
+}
+
 function listIndent({ state, dispatch }) {
   const line = state.doc.lineAt(state.selection.main.from);
-  if (/^\s*[-*+]\s/.test(line.text) || /^\s*\d+[.)]\s/.test(line.text)) {
-    dispatch({ changes: { from: line.from, insert: "  " }, selection: { anchor: state.selection.main.from + 2 } });
+  if (isList(line.text)) {
+    dispatch({
+      changes: { from: line.from, insert: "  " },
+      selection: { anchor: state.selection.main.from + 2 }
+    });
     return true;
   }
   return false;
@@ -454,10 +485,14 @@ function listIndent({ state, dispatch }) {
 
 function listDedent({ state, dispatch }) {
   const line = state.doc.lineAt(state.selection.main.from);
-  const m = line.text.match(/^(\s{2,})([-*+]\s|\d+[.)]\s)/);
+  if (!isList(line.text)) return false;
+  const m = line.text.match(/^(\s+)/);
   if (m) {
     const n = Math.min(2, m[1].length);
-    dispatch({ changes: { from: line.from, to: line.from + n }, selection: { anchor: Math.max(line.from, state.selection.main.from - n) } });
+    dispatch({
+      changes: { from: line.from, to: line.from + n },
+      selection: { anchor: Math.max(line.from, state.selection.main.from - n) }
+    });
     return true;
   }
   return false;
