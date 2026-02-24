@@ -16,7 +16,7 @@
   --cm-fg:           #1d1d1f;
   --cm-fg-secondary: #48484a;
   --cm-fg-tertiary:  #8e8e93;
-  --cm-fg-faint:     #c7c7cc;
+  --cm-fg-faint:     #98989d;
   --cm-link:         #0066cc;
   --cm-code-bg:      rgba(0, 0, 0, 0.045);
   --cm-border:       rgba(0, 0, 0, 0.1);
@@ -24,7 +24,7 @@
   --cm-active-line:  rgba(0, 0, 0, 0.025);
   --cm-syntax:       rgba(0, 0, 0, 0.22);
   --cm-checkbox:     #0066cc;
-  --cm-bullet:       rgba(0, 0, 0, 0.35);
+  --cm-bullet:       rgba(0, 0, 0, 0.55);
   --cm-hr:           rgba(0, 0, 0, 0.12);
   --cm-bq-border:    rgba(0, 0, 0, 0.15);
   --cm-font:         -apple-system, BlinkMacSystemFont, "SF Pro Text", "Helvetica Neue", system-ui, sans-serif;
@@ -290,7 +290,7 @@ html, body {
   cursor: pointer;
   position: relative;
   top: -1px;
-  background: transparent;
+  background: rgba(0, 0, 0, 0.04);
   transition: background 0.15s, border-color 0.15s;
 }
 
@@ -309,6 +309,12 @@ html, body {
   border: solid white;
   border-width: 0 1.5px 1.5px 0;
   transform: rotate(45deg);
+}
+
+@media (prefers-color-scheme: dark) {
+  .cm-checkbox-widget:not(:checked) {
+    background: rgba(255, 255, 255, 0.08);
+  }
 }
 
 /* ── Placeholder ──────────────────────────────────────────────── */

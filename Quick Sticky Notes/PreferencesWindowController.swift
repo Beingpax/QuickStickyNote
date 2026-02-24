@@ -2,6 +2,7 @@ import Cocoa
 import SwiftUI
 import KeyboardShortcuts
 import LaunchAtLogin
+import ApplicationServices
 
 class PreferencesWindowController: NSWindowController {
     init() {
@@ -47,6 +48,7 @@ struct PreferencesView: View {
     @State private var hideDockIcon: Bool = true
     @State private var launchAtLogin: Bool = true
     @State private var showingScratchpadInfo = false
+    @State private var hasAccessibilityPermission = AXIsProcessTrusted()
     
     var body: some View {
         ScrollView {
@@ -184,6 +186,36 @@ struct PreferencesView: View {
                         }
                     }
                     
+                    // Permissions
+                    SettingSection(title: "Permissions", icon: "lock.shield.fill", iconColor: Color(hex: "#4ECDC4")) {
+                        VStack(alignment: .leading, spacing: 12) {
+                            HStack(spacing: 8) {
+                                Circle()
+                                    .fill(hasAccessibilityPermission ? Color(hex: "#4ECDC4") : Color(hex: "#FF6B6B"))
+                                    .frame(width: 8, height: 8)
+                                Text(hasAccessibilityPermission ? "Accessibility: Granted" : "Accessibility: Not Granted")
+                                    .foregroundStyle(hasAccessibilityPermission ? Color(hex: "#4ECDC4") : Color(hex: "#FF6B6B"))
+                                    .font(.system(size: 14, weight: .medium))
+                            }
+
+                            Text("Allows dismissing the sidebar with Escape from any app, even when the sidebar is not focused.")
+                                .font(.system(size: 12))
+                                .foregroundStyle(.secondary)
+                                .fixedSize(horizontal: false, vertical: true)
+
+                            if !hasAccessibilityPermission {
+                                Button("Open Accessibility Settings") {
+                                    NSWorkspace.shared.open(URL(string: "x-apple.systempreferences:com.apple.preference.security?Privacy_Accessibility")!)
+                                }
+                                .buttonStyle(ModernSecondaryButtonStyle())
+                            }
+                        }
+                        .onAppear { hasAccessibilityPermission = AXIsProcessTrusted() }
+                        .onReceive(NotificationCenter.default.publisher(for: NSApplication.didBecomeActiveNotification)) { _ in
+                            hasAccessibilityPermission = AXIsProcessTrusted()
+                        }
+                    }
+
                     #if DEBUG
                     // Advanced
                     SettingSection(title: "Advanced", icon: "gear", iconColor: Color(hex: "#9B9B9B")) {

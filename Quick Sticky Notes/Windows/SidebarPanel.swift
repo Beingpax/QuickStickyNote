@@ -1,5 +1,6 @@
 import AppKit
 import SwiftUI
+import ApplicationServices
 
 // MARK: - Mouse Tracking View
 
@@ -136,14 +137,17 @@ class SidebarManager {
     private(set) var panelWindow: SidebarPanelWindow?
     private var globalMouseMonitor: Any?
     private var localMouseMonitor: Any?
+    private var localKeyMonitor: Any?
+    private var globalKeyMonitor: Any?
     private var hideWorkItem: DispatchWorkItem?
     private var screenChangeObserver: Any?
+    private var appActivationObserver: Any?
 
     private(set) var isVisible = false
     /// The screen the panel is currently shown on (or last shown on).
     private var activeScreen: NSScreen?
 
-    static let panelWidth: CGFloat = 300
+    static let panelWidth: CGFloat = 360
 
     private let triggerZone: CGFloat = 3
     private let hideDelay:   TimeInterval = 0.4
@@ -168,17 +172,24 @@ class SidebarManager {
         setupPills()
         startMonitoring()
         observeScreenChanges()
+        observeAppActivation()
     }
 
 
     func stop() {
         globalMouseMonitor.map { NSEvent.removeMonitor($0) }
         localMouseMonitor.map  { NSEvent.removeMonitor($0) }
+        localKeyMonitor.map    { NSEvent.removeMonitor($0) }
+        globalKeyMonitor.map   { NSEvent.removeMonitor($0) }
         globalMouseMonitor = nil
         localMouseMonitor  = nil
+        localKeyMonitor    = nil
+        globalKeyMonitor   = nil
 
         screenChangeObserver.map { NotificationCenter.default.removeObserver($0) }
         screenChangeObserver = nil
+        appActivationObserver.map { NotificationCenter.default.removeObserver($0) }
+        appActivationObserver = nil
 
         panelWindow?.close()
         panelWindow = nil
@@ -237,6 +248,31 @@ class SidebarManager {
         }
     }
 
+    // MARK: Accessibility Re-registration
+
+    private func observeAppActivation() {
+        appActivationObserver = NotificationCenter.default.addObserver(
+            forName: NSApplication.didBecomeActiveNotification,
+            object: nil,
+            queue: .main
+        ) { [weak self] _ in
+            self?.registerGlobalKeyMonitorIfNeeded()
+        }
+    }
+
+    /// Re-registers the global Escape key monitor when Accessibility permission
+    /// has been granted after launch.
+    private func registerGlobalKeyMonitorIfNeeded() {
+        // Already registered — nothing to do.
+        if globalKeyMonitor != nil { return }
+        guard AXIsProcessTrusted() else { return }
+
+        globalKeyMonitor = NSEvent.addGlobalMonitorForEvents(matching: [.keyDown]) { [weak self] event in
+            guard event.keyCode == 53 else { return }
+            MainActor.assumeIsolated { self?.handleEscape() }
+        }
+    }
+
     // MARK: Mouse Monitoring
 
     private func startMonitoring() {
@@ -250,6 +286,19 @@ class SidebarManager {
         localMouseMonitor = NSEvent.addLocalMonitorForEvents(matching: [.mouseMoved]) { [weak self] event in
             MainActor.assumeIsolated { self?.checkMousePosition() }
             return event
+        }
+
+        // Local Escape key monitor — catches Escape when the panel is key.
+        localKeyMonitor = NSEvent.addLocalMonitorForEvents(matching: [.keyDown]) { [weak self] event in
+            guard event.keyCode == 53 else { return event } // 53 = Escape
+            MainActor.assumeIsolated { self?.handleEscape() }
+            return nil // consume the event
+        }
+
+        // Global Escape key monitor — catches Escape from any app (requires Accessibility permission).
+        globalKeyMonitor = NSEvent.addGlobalMonitorForEvents(matching: [.keyDown]) { [weak self] event in
+            guard event.keyCode == 53 else { return } // 53 = Escape
+            MainActor.assumeIsolated { self?.handleEscape() }
         }
     }
 
@@ -290,8 +339,12 @@ class SidebarManager {
 
         guard let screen = screen ?? screenUnderCursor() ?? NSScreen.screens.first else { return }
 
-        // Already visible on the same screen — nothing to do.
-        if isVisible && activeScreen == screen { return }
+        // Already visible on the same screen — just reclaim key status
+        // so Escape works after the user clicked on another app.
+        if isVisible && activeScreen == screen {
+            panelWindow?.makeKeyAndOrderFront(nil)
+            return
+        }
 
         // Switching screens: snap panel off the old screen instantly, then animate in on the new one.
         if isVisible, let previous = activeScreen, previous != screen {
@@ -322,11 +375,10 @@ class SidebarManager {
 
     func handleEscape() {
         if isInDetailMode {
-            // Tell the detail view to navigate back to the list.
             NotificationCenter.default.post(name: .sidebarNavigateBack, object: nil)
-        } else {
-            hidePanel()
+            isInDetailMode = false
         }
+        hidePanel()
     }
 
     func hidePanel() {
