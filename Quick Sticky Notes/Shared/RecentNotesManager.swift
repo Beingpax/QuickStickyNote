@@ -2,7 +2,7 @@ import Foundation
 
 class RecentNotesManager: ObservableObject {
     static let shared = RecentNotesManager()
-    private let maxRecentNotes = 10
+    private let maxRecentNotes = 50
     private let userDefaultsKey = "recentNotes"
     
     @Published private(set) var recentNotes: [String] = []

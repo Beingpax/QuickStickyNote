@@ -5,6 +5,7 @@ import AppKit
 
 struct SidebarPanelView: View {
     @StateObject private var notesManager = NotesManager.shared
+    @StateObject private var recentNotesManager = RecentNotesManager.shared
     @State private var searchText  = ""
     @State private var sortBy: SortBy = .modified
     @State private var selectedNote: FileNote? = nil
@@ -13,6 +14,7 @@ struct SidebarPanelView: View {
         case modified = "Modified"
         case created  = "Created"
         case title    = "Name"
+        case recent   = "Recent"
     }
 
     private var displayedNotes: [FileNote] {
@@ -28,6 +30,10 @@ struct SidebarPanelView: View {
         case .title:    return base.sorted {
             $0.title.localizedCaseInsensitiveCompare($1.title) == .orderedAscending
         }
+        case .recent:
+            let recentPaths = recentNotesManager.recentNotes
+            let lookup = Dictionary(uniqueKeysWithValues: base.map { ($0.filePath, $0) })
+            return recentPaths.compactMap { lookup[$0] }
         }
     }
 
@@ -183,6 +189,7 @@ struct SidebarPanelView: View {
     // MARK: - Navigation
 
     private func openNote(_ note: FileNote) {
+        RecentNotesManager.shared.addRecentNote(filePath: note.filePath)
         SidebarManager.shared.isInDetailMode = true
         withAnimation(.easeInOut(duration: 0.18)) {
             selectedNote = note
