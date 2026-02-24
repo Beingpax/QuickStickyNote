@@ -1,0 +1,343 @@
+* {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+}
+
+/* ── Color system — adapts to macOS light/dark mode ──────────── */
+
+:root {
+  --cm-fg:           #1d1d1f;
+  --cm-fg-secondary: #48484a;
+  --cm-fg-tertiary:  #8e8e93;
+  --cm-fg-faint:     #c7c7cc;
+  --cm-link:         #0066cc;
+  --cm-code-bg:      rgba(0, 0, 0, 0.045);
+  --cm-border:       rgba(0, 0, 0, 0.1);
+  --cm-selection:    rgba(0, 100, 255, 0.15);
+  --cm-active-line:  rgba(0, 0, 0, 0.025);
+  --cm-syntax:       rgba(0, 0, 0, 0.22);
+  --cm-checkbox:     #0066cc;
+  --cm-bullet:       rgba(0, 0, 0, 0.35);
+  --cm-hr:           rgba(0, 0, 0, 0.12);
+  --cm-bq-border:    rgba(0, 0, 0, 0.15);
+  --cm-font:         -apple-system, BlinkMacSystemFont, "SF Pro Text", "Helvetica Neue", system-ui, sans-serif;
+  --cm-mono:         "SF Mono", Menlo, Monaco, "Cascadia Code", monospace;
+}
+
+@media (prefers-color-scheme: dark) {
+  :root {
+    --cm-fg:           #f5f5f7;
+    --cm-fg-secondary: #b0b0b5;
+    --cm-fg-tertiary:  #7c7c82;
+    --cm-fg-faint:     #48484a;
+    --cm-link:         #6cb4ff;
+    --cm-code-bg:      rgba(255, 255, 255, 0.06);
+    --cm-border:       rgba(255, 255, 255, 0.1);
+    --cm-selection:    rgba(80, 160, 255, 0.25);
+    --cm-active-line:  rgba(255, 255, 255, 0.03);
+    --cm-syntax:       rgba(255, 255, 255, 0.2);
+    --cm-checkbox:     #6cb4ff;
+    --cm-bullet:       rgba(255, 255, 255, 0.4);
+    --cm-hr:           rgba(255, 255, 255, 0.12);
+    --cm-bq-border:    rgba(255, 255, 255, 0.15);
+  }
+}
+
+html, body {
+  height: 100%;
+  width: 100%;
+  overflow: hidden;
+  background: transparent;
+  font-family: var(--cm-font);
+  color: var(--cm-fg);
+  -webkit-font-smoothing: antialiased;
+}
+
+#editor {
+  height: 100%;
+  width: 100%;
+  overflow: auto;
+}
+
+/* ── CodeMirror base ─────────────────────────────────────────── */
+
+.cm-editor {
+  height: 100%;
+  font-size: 14px;
+  background: transparent !important;
+  font-family: var(--cm-font) !important;
+  color: var(--cm-fg) !important;
+}
+
+.cm-editor.cm-focused {
+  outline: none !important;
+}
+
+.cm-scroller {
+  overflow: auto;
+  font-family: var(--cm-font) !important;
+  line-height: 1.65;
+  padding: 0 4px;
+}
+
+.cm-content {
+  padding: 8px 0;
+  caret-color: var(--cm-fg);
+  font-family: var(--cm-font) !important;
+  color: var(--cm-fg);
+}
+
+.cm-line {
+  padding: 1px 2px;
+}
+
+.cm-cursor {
+  border-left-color: var(--cm-fg) !important;
+}
+
+/* ── Selection ───────────────────────────────────────────────── */
+
+.cm-selectionBackground {
+  background: var(--cm-selection) !important;
+}
+
+.cm-content ::selection {
+  background: var(--cm-selection) !important;
+}
+
+/* ── Headings ────────────────────────────────────────────────── */
+
+.cm-heading-1 { font-size: 1.75em; font-weight: 700; line-height: 1.25; padding: 6px 0 2px; color: var(--cm-fg); }
+.cm-heading-2 { font-size: 1.45em; font-weight: 700; line-height: 1.3;  padding: 4px 0 2px; color: var(--cm-fg); }
+.cm-heading-3 { font-size: 1.25em; font-weight: 600; line-height: 1.35; padding: 3px 0 1px; color: var(--cm-fg); }
+.cm-heading-4 { font-size: 1.12em; font-weight: 600; line-height: 1.4;  padding: 2px 0 1px; color: var(--cm-fg); }
+.cm-heading-5 { font-size: 1.05em; font-weight: 600; line-height: 1.45; color: var(--cm-fg); }
+.cm-heading-6 { font-size: 1.0em;  font-weight: 600; line-height: 1.5;  color: var(--cm-fg-secondary); }
+
+/* Syntax marks — shown dimmed only on active/cursor line */
+.cm-syntax-mark {
+  color: var(--cm-syntax);
+  font-size: 0.85em;
+}
+
+/* Keep # marks small inside headings */
+.cm-heading-mark {
+  font-size: 12px !important;
+  font-weight: 400 !important;
+  color: var(--cm-syntax);
+  vertical-align: middle;
+}
+
+/* ── Inline formatting ───────────────────────────────────────── */
+
+.cm-strong {
+  font-weight: 700;
+  color: var(--cm-fg);
+}
+
+.cm-emphasis {
+  font-style: italic;
+  color: var(--cm-fg);
+}
+
+.cm-strikethrough {
+  text-decoration: line-through;
+  color: var(--cm-fg-tertiary);
+}
+
+/* ── Inline code ─────────────────────────────────────────────── */
+
+.cm-inline-code {
+  font-family: var(--cm-mono);
+  font-size: 0.88em;
+  background: var(--cm-code-bg);
+  border-radius: 4px;
+  padding: 2px 5px;
+  color: var(--cm-fg);
+}
+
+/* ── Code blocks ─────────────────────────────────────────────── */
+
+.cm-codeblock-line {
+  font-family: var(--cm-mono) !important;
+  font-size: 0.88em;
+  background: var(--cm-code-bg);
+  padding: 0 10px;
+  color: var(--cm-fg);
+}
+
+.cm-fence-line {
+  background: var(--cm-code-bg);
+}
+
+.cm-fence-text {
+  color: var(--cm-syntax);
+  font-size: 0.8em;
+}
+
+/* ── Blockquote ──────────────────────────────────────────────── */
+
+.cm-blockquote-line {
+  border-left: 3px solid var(--cm-bq-border);
+  padding-left: 14px !important;
+  color: var(--cm-fg-secondary);
+}
+
+/* ── Tables ───────────────────────────────────────────────────── */
+
+.cm-table-header,
+.cm-table-row,
+.cm-table-sep {
+  font-family: var(--cm-mono) !important;
+  font-size: 0.82em;
+  background: var(--cm-code-bg);
+  padding: 1px 8px !important;
+  white-space: pre !important;
+  overflow-x: auto;
+}
+
+.cm-table-header {
+  font-weight: 600;
+  color: var(--cm-fg);
+  border-bottom: 1px solid var(--cm-border);
+}
+
+.cm-table-row {
+  color: var(--cm-fg);
+}
+
+.cm-table-sep {
+  line-height: 0.4;
+  padding: 0 8px !important;
+  opacity: 0;
+  height: 2px;
+  overflow: hidden;
+}
+
+.cm-table-pipe {
+  color: var(--cm-fg-faint);
+}
+
+/* ── Links ────────────────────────────────────────────────────── */
+
+.cm-link {
+  color: var(--cm-link);
+  text-decoration: underline;
+  text-decoration-color: color-mix(in srgb, var(--cm-link) 40%, transparent);
+  text-underline-offset: 2px;
+  cursor: pointer;
+}
+
+.cm-url {
+  color: var(--cm-link);
+  opacity: 0.5;
+  font-size: 0.85em;
+  word-break: break-all;
+}
+
+/* ── Horizontal rule ─────────────────────────────────────────── */
+
+.cm-hr-widget {
+  height: 1px;
+  margin: 14px 0;
+  background: var(--cm-hr);
+  border-radius: 1px;
+}
+
+.cm-hr-active {
+  text-align: center;
+}
+
+/* ── Lists ────────────────────────────────────────────────────── */
+
+.cm-list-mark {
+  color: var(--cm-fg-tertiary);
+}
+
+.cm-bullet-widget {
+  display: inline-block;
+  width: 18px;
+  text-align: center;
+  color: var(--cm-bullet);
+  font-size: 0.9em;
+  line-height: 1;
+  vertical-align: baseline;
+}
+
+/* ── Checkbox ─────────────────────────────────────────────────── */
+
+.cm-checkbox-widget {
+  appearance: none;
+  -webkit-appearance: none;
+  width: 15px;
+  height: 15px;
+  border: 1.5px solid var(--cm-fg-faint);
+  border-radius: 3px;
+  vertical-align: middle;
+  margin-right: 6px;
+  cursor: pointer;
+  position: relative;
+  top: -1px;
+  background: transparent;
+  transition: background 0.15s, border-color 0.15s;
+}
+
+.cm-checkbox-widget:checked {
+  background: var(--cm-checkbox);
+  border-color: var(--cm-checkbox);
+}
+
+.cm-checkbox-widget:checked::after {
+  content: '';
+  position: absolute;
+  left: 3px;
+  top: 0px;
+  width: 5px;
+  height: 9px;
+  border: solid white;
+  border-width: 0 1.5px 1.5px 0;
+  transform: rotate(45deg);
+}
+
+/* ── Placeholder ──────────────────────────────────────────────── */
+
+.cm-placeholder {
+  color: var(--cm-fg-tertiary) !important;
+  font-style: italic;
+}
+
+/* ── Active line ──────────────────────────────────────────────── */
+
+.cm-activeLine {
+  background: var(--cm-active-line) !important;
+}
+
+.cm-activeLineGutter {
+  background: transparent !important;
+}
+
+/* ── Gutters (hidden) ─────────────────────────────────────────── */
+
+.cm-gutters {
+  display: none !important;
+}
+
+/* ── Scrollbar ────────────────────────────────────────────────── */
+
+.cm-scroller::-webkit-scrollbar {
+  width: 5px;
+}
+
+.cm-scroller::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+.cm-scroller::-webkit-scrollbar-thumb {
+  background: var(--cm-fg-faint);
+  border-radius: 3px;
+}
+
+.cm-scroller::-webkit-scrollbar-thumb:hover {
+  background: var(--cm-fg-tertiary);
+}

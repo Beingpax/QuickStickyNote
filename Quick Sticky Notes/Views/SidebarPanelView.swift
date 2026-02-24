@@ -350,13 +350,13 @@ struct SidebarNoteDetailView: View {
     // MARK: Editor
 
     private var editor: some View {
-        TextEditor(text: $content)
-            .font(.system(size: 13))
-            .scrollContentBackground(.hidden)
-            .background(.clear)
-            .padding(.horizontal, 8)
-            .padding(.vertical, 4)
-            .onChange(of: content) { _, _ in scheduleContentSave() }
+        CodeMirrorEditorView(
+            text: $content,
+            backgroundColor: .clear
+        )
+        .padding(.horizontal, 8)
+        .padding(.vertical, 4)
+        .onChange(of: content) { _, _ in scheduleContentSave() }
     }
 
     // MARK: Save / Rename / Color
