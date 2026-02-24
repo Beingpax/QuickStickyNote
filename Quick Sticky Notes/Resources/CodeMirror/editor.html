@@ -23,7 +23,7 @@
   --cm-selection:    rgba(0, 100, 255, 0.15);
   --cm-active-line:  rgba(0, 0, 0, 0.025);
   --cm-syntax:       rgba(0, 0, 0, 0.22);
-  --cm-checkbox:     #0066cc;
+  --cm-checkbox:     #E8453C;
   --cm-bullet:       rgba(0, 0, 0, 0.55);
   --cm-hr:           rgba(0, 0, 0, 0.12);
   --cm-bq-border:    rgba(0, 0, 0, 0.15);
@@ -43,7 +43,7 @@
     --cm-selection:    rgba(80, 160, 255, 0.25);
     --cm-active-line:  rgba(255, 255, 255, 0.03);
     --cm-syntax:       rgba(255, 255, 255, 0.2);
-    --cm-checkbox:     #6cb4ff;
+    --cm-checkbox:     #E8453C;
     --cm-bullet:       rgba(255, 255, 255, 0.4);
     --cm-hr:           rgba(255, 255, 255, 0.12);
     --cm-bq-border:    rgba(255, 255, 255, 0.15);
@@ -281,29 +281,35 @@ html, body {
 .cm-checkbox-widget {
   appearance: none;
   -webkit-appearance: none;
-  width: 15px;
-  height: 15px;
+  width: 16px;
+  height: 16px;
   border: 1.5px solid var(--cm-fg-faint);
-  border-radius: 3px;
+  border-radius: 5px;
   vertical-align: middle;
-  margin-right: 6px;
+  margin-right: 7px;
   cursor: pointer;
   position: relative;
   top: -1px;
   background: rgba(0, 0, 0, 0.04);
-  transition: background 0.15s, border-color 0.15s;
+  transition: background 0.2s, border-color 0.2s, box-shadow 0.2s;
+}
+
+.cm-checkbox-widget:hover {
+  border-color: var(--cm-checkbox);
+  box-shadow: 0 0 0 2px color-mix(in srgb, var(--cm-checkbox) 20%, transparent);
 }
 
 .cm-checkbox-widget:checked {
   background: var(--cm-checkbox);
   border-color: var(--cm-checkbox);
+  box-shadow: 0 1px 3px color-mix(in srgb, var(--cm-checkbox) 35%, transparent);
 }
 
 .cm-checkbox-widget:checked::after {
   content: '';
   position: absolute;
-  left: 3px;
-  top: 0px;
+  left: 3.5px;
+  top: 0.5px;
   width: 5px;
   height: 9px;
   border: solid white;
@@ -315,6 +321,19 @@ html, body {
   .cm-checkbox-widget:not(:checked) {
     background: rgba(255, 255, 255, 0.08);
   }
+}
+
+/* ── Checklist line spacing & completed state ────────────────── */
+
+.cm-line:has(.cm-checkbox-widget) {
+  padding-top: 3px;
+  padding-bottom: 3px;
+}
+
+.cm-line:has(.cm-checkbox-widget:checked) {
+  text-decoration: line-through;
+  text-decoration-color: var(--cm-fg-secondary);
+  opacity: 0.9;
 }
 
 /* ── Placeholder ──────────────────────────────────────────────── */
